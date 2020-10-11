@@ -7,8 +7,14 @@ using Store.DataAccess.Entities;
 
 namespace Store.DataAccess.Repositories.Interfaces
 {
-    public interface IAuthorRepository<T> : IBaseRepository<T> where T : class
+    public interface IAuthorRepository
     {
+        public Task<IEnumerable<Author>> GetAuthorsAsync();
+        public Task<Author> GetAuthorByIdAsync(string id);
         public Task<Author> GetAuthorByNameAsync(string name);
+        public Task<Author> CreateAuthorAsync(Author entity);
+        public Task<Author> RemoveAuthorAsync(Author entity);
+        public Task DeleteAuthorAsync(Author entity);
+        public Task<Author> UpdateAuthorAsync(Author entity);
     }
 }

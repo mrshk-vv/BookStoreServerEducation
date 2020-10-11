@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Store.BusinessLogic.Models.PrintingEdition;
+using Store.Shared.Filters;
+using Store.Shared.Pagination;
 
 namespace Store.BusinessLogic.Interfaces
 {
@@ -10,9 +12,11 @@ namespace Store.BusinessLogic.Interfaces
     {
         public Task<PrintingEditionModel> CreateEditionAsync(PrintingEditionModel model);
         public Task<IEnumerable<PrintingEditionModel>> GetAllEditionsAsync();
+        public Task<IEnumerable<PrintingEditionModel>> GetAllEditionsAsync(PaginationQuery paginationFilter, PrintingEditionFilter filter);
         public Task<PrintingEditionModel> GetEditionAsync(string id);
         public Task<PrintingEditionModel> UpdateEditionAsync(PrintingEditionModel model);
         public Task<PrintingEditionModel> RemoveEditionAsync(string id);
+        public Task DeleteEditionAsync(string id);
 
     }
 }

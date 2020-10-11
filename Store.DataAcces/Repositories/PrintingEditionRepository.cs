@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -7,40 +8,48 @@ using Store.DataAccess.AppContext;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
 using Store.DataAccess.Repositories.Interfaces;
+using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories
 {
-    public class PrintingEditionRepository : BaseEfRepository<PrintingEdition>, IPrintingEditionRepository<PrintingEdition>
+    public class PrintingEditionRepository : BaseEfRepository<PrintingEdition>, IPrintingEditionRepository
     {
         public PrintingEditionRepository(ApplicationContext context) : base(context)
         {
         }
-
-        public async Task<IEnumerable<PrintingEdition>> GetAllAsync()
+        public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await GetAllAsync();
         }
 
-        public async Task<PrintingEdition> GetEntityAsync(PrintingEdition entity)
+        public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize)
         {
-            return await _dbSet.FindAsync(entity.Id);
+            return await _dbSet.Skip(skip).Take(pageSize).ToListAsync();
         }
 
-        public async Task<PrintingEdition> GetEntityAsync(string id)
+        public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize, PrintingEditionFilter filter)
+        {
+            return await _dbSet.Where(pe =>
+                    pe.Price >= filter.MinPrice 
+                    && pe.Price <= filter.MaxPrice 
+                    || filter.Type == null ? true
+                        : pe.Type == filter.Type)
+                .Skip(skip)
+                .Take(pageSize).ToListAsync();
+        }
+
+        public async Task<PrintingEdition> GetEditionByIdAsync(string id)
         {
             int curId = int.Parse(id);
-            return await _dbSet.FindAsync(curId);
+            return await GetByIdAsync(curId);
         }
 
-        public async Task<PrintingEdition> CreateAsync(PrintingEdition entity)
+        public async Task<PrintingEdition> CreateEditionAsync(PrintingEdition entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            return entity;
+            return await CreateAsync(entity);
         }
 
-        public async Task<PrintingEdition> RemoveAsync(PrintingEdition entity)
+        public async Task<PrintingEdition> RemoveEditionAsync(PrintingEdition entity)
         {
             entity.IsRemoved = true;
             _dbSet.Update(entity);
@@ -49,12 +58,14 @@ namespace Store.DataAccess.Repositories
             return entity;
         }
 
-        public async Task<PrintingEdition> UpdateAsync(PrintingEdition entity)
+        public async Task DeleteEditionAsync(PrintingEdition entity)
         {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
+            await DeleteAsync(entity);
+        }
 
-            return entity;
+        public async Task<PrintingEdition> UpdateEditionAsync(PrintingEdition entity)
+        {
+            return await UpdateAsync(entity);
         }
 
         public async Task<PrintingEdition> GetEdititonByTitle(string title)

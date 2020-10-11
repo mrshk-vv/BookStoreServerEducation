@@ -13,6 +13,8 @@ using Store.DataAccess.Repositories.Interfaces;
 using Store.Shared.Common;
 using Store.Shared.Constants;
 using Store.Shared.Enums;
+using Store.Shared.Filters;
+using Store.Shared.Pagination;
 
 namespace Store.BusinessLogic.Services
 {
@@ -20,10 +22,10 @@ namespace Store.BusinessLogic.Services
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly IUserRepository<User> _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
-        public AccountService(IUserRepository<User> userRepository, SignInManager<User> signInManager, IMapper mapper,
+        public AccountService(IUserRepository userRepository, SignInManager<User> signInManager, IMapper mapper,
             UserManager<User> userManager)
         {
             _userRepository = userRepository;
@@ -33,53 +35,52 @@ namespace Store.BusinessLogic.Services
         }
 
         #region Administration
-        public async Task<IEnumerable<UserModel>> GetUsers()
+        public async Task<IEnumerable<UserModel>> GetUsersAsync()
         {
-            return _mapper.Map<IEnumerable<UserModel>>(await _userRepository.GetAllAsync());
+            return _mapper.Map<IEnumerable<UserModel>>(await _userRepository.GetAllUsersAsync());
+        }
+
+        public async Task<IEnumerable<UserModel>> GetUsersAsync(PaginationQuery paginationQuery, UsersFilter filter)
+        {
+            var skip = (paginationQuery.PageNumber - 1) * paginationQuery.PageSize;
+
+            if (filter.Status == false && filter.UserName is null)
+            {
+                return _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
+                    await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize));
+            }
+
+            var userList = _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
+                await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize,filter));
+
+            return userList;
         }
 
         public async Task<UserModel> GetUserByIdAsync(string id)
         {
-            var user = await _userRepository.GetEntityAsync(id);
-            if (user is null)
-            {
-                throw new ServerException(Constants.Errors.USER_NOT_FOUND,Enums.Errors.NotFound);
-            }
-
+            var user = await _userRepository.GetUserByIdAsync(id);
             var userModel = _mapper.Map<User, UserModel>(user);
 
             return userModel;
         }
 
-        public async Task UpdateUserAsync(UserModel model)
+        public async Task<UserModel> UpdateUserAsync(UserModel model)
         {
             var user = _mapper.Map<UserModel, User>(model);
-            await _userRepository.UpdateAsync(user);
+            return _mapper.Map<User, UserModel>(await _userRepository.UpdateUserAsync(user));
         }
 
         public async Task DeleteUserAsync(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ServerException(Constants.Errors.EMPTY_FIELD,Enums.Errors.BadRequest);
-            }
-
-            var user = await _userRepository.GetEntityAsync(id);
-
+            var user = await _userRepository.GetUserByIdAsync(id);
             await _userManager.DeleteAsync(user);
         }
 
-        public async Task BlockUserAsync(string id)
+        public async Task<UserModel> BlockUserAsync(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ServerException(Constants.Errors.EMPTY_FIELD, Enums.Errors.BadRequest);
-            }
-
-            var user = await _userRepository.GetEntityAsync(id);
-            await _userRepository.BlockUserAsync(user);
+            var user = await _userRepository.GetUserByIdAsync(id);
+            return _mapper.Map<User,UserModel>(await _userRepository.BlockUserAsync(user));
         }
-
         #endregion
 
         #region Authentiation and authorization

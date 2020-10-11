@@ -38,9 +38,9 @@ namespace Store.DataAccess
                 .AddDefaultTokenProviders()
                 .AddTokenProvider("StoreServer", typeof(DataProtectorTokenProvider<User>));
 
-            services.AddTransient(typeof(IUserRepository<User>), typeof(UserRepository));
-            services.AddTransient(typeof(IAuthorRepository<Author>), typeof(AuthorRepository));
-            services.AddTransient(typeof(IPrintingEditionRepository<PrintingEdition>), typeof(PrintingEditionRepository));
+            services.AddTransient(typeof(IUserRepository), typeof(UserRepository));
+            services.AddTransient(typeof(IAuthorRepository), typeof(AuthorRepository));
+            services.AddTransient(typeof(IPrintingEditionRepository), typeof(PrintingEditionRepository));
 
             await services.BuildServiceProvider().IdentityInitializerAsync();
 

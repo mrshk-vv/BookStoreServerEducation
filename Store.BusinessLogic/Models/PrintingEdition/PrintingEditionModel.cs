@@ -15,6 +15,7 @@ namespace Store.BusinessLogic.Models.PrintingEdition
         public string Type { get; set; }
         [Required]
         public string Currency { get; set; }
+        public string AuthorName { get; set; }
         public bool IsRemoved { get; set; }
 
     }

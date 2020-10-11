@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -10,37 +11,35 @@ using Store.DataAccess.Repositories.Interfaces;
 
 namespace Store.DataAccess.Repositories
 {
-    public class AuthorRepository : BaseEfRepository<Author>, IAuthorRepository<Author>
+    public class AuthorRepository : BaseEfRepository<Author>, IAuthorRepository
     {
         public AuthorRepository(ApplicationContext context) : base(context)
         {
         }
 
-        public async Task<IEnumerable<Author>> GetAllAsync()
+        public async Task<IEnumerable<Author>> GetAuthorsAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await GetAllAsync();
         }
 
-        public async Task<Author> GetEntityAsync(Author entity)
+        public async Task<Author> GetAuthorByIdAsync(string id)
         {
-            return await _dbSet.FindAsync(entity.Id);
+            var curId = int.Parse(id);
+            return await GetByIdAsync(curId);
         }
 
-        public async Task<Author> GetEntityAsync(string id)
+
+        public async Task<Author> GetAuthorByNameAsync(string name)
         {
-            int curId = int.Parse(id);
-            return await _dbSet.FindAsync(curId);
+            return await _dbSet.FirstOrDefaultAsync(a => a.Name == name);
         }
 
-        public async Task<Author> CreateAsync(Author entity)
+        public async Task<Author> CreateAuthorAsync(Author entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            return entity;
+            return await CreateAsync(entity);
         }
 
-        public async Task<Author> RemoveAsync(Author entity)
+        public async Task<Author> RemoveAuthorAsync(Author entity)
         {
             entity.IsRemoved = true;
             _dbSet.Update(entity);
@@ -49,17 +48,15 @@ namespace Store.DataAccess.Repositories
             return entity;
         }
 
-        public async Task<Author> UpdateAsync(Author entity)
+        public async Task DeleteAuthorAsync(Author entity)
         {
-            _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
-
-            return entity;
+           await DeleteAsync(entity);
         }
 
-        public async Task<Author> GetAuthorByNameAsync(string name)
+        public async Task<Author> UpdateAuthorAsync(Author entity)
         {
-            return await _dbSet.FirstOrDefaultAsync(a => a.Name == name);
+            return await UpdateAsync(entity);
         }
+
     }
 }

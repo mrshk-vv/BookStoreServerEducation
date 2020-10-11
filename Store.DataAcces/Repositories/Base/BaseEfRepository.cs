@@ -9,7 +9,7 @@ using Store.DataAccess.Repositories.Interfaces;
 
 namespace Store.DataAccess.Repositories.Base
 {
-    public class BaseEfRepository<T> : IBaseRepository<T> where T : class
+    public class BaseEfRepository<T> where T : class
     {
         protected readonly ApplicationContext _context;
         protected readonly DbSet<T> _dbSet;
@@ -30,7 +30,7 @@ namespace Store.DataAccess.Repositories.Base
             return await _dbSet.FindAsync(entity);
         }
 
-        public async Task<T> GetEntityAsync(string id)
+        public async Task<T> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
         }
@@ -43,12 +43,10 @@ namespace Store.DataAccess.Repositories.Base
             return entity;
         }
 
-        public async Task<T> RemoveAsync(T entity)
+        public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
             await _context.SaveChangesAsync();
-
-            return entity;
         }
 
         public async Task<T> UpdateAsync(T entity)

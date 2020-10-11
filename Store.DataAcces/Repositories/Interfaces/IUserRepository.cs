@@ -2,13 +2,19 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Store.DataAccess.Entities;
+using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories.Interfaces
 {
-    public interface IUserRepository<T> : IBaseRepository<T> where T : class
+    public interface IUserRepository
     {
-        public Task<bool> CreateAsync(T entity, string password);
+        public Task<bool> CreateAsync(User entity, string password);
+        public Task<User> GetUserByIdAsync(string id);
+        public Task<IEnumerable<User>> GetAllUsersAsync();
+        public Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize);
+        public Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter);
         public Task<User> GetUserByEmailAsync(string email);
+        public Task<User> UpdateUserAsync(User user);
         public Task<User> BlockUserAsync(User user);
 
 

@@ -16,9 +16,9 @@ namespace Store.BusinessLogic.Services
     public class AuthorService : IAuthorService
     {
         private readonly IMapper _mapper;
-        private readonly IAuthorRepository<Author> _authorRepository;
+        private readonly IAuthorRepository _authorRepository;
 
-        public AuthorService(IMapper mapper, IAuthorRepository<Author> authorRepository)
+        public AuthorService(IMapper mapper, IAuthorRepository authorRepository)
         {
             _mapper = mapper;
             _authorRepository = authorRepository;
@@ -39,14 +39,14 @@ namespace Store.BusinessLogic.Services
             }
 
             var authorToAdd = _mapper.Map<AuthorModel, Author>(model);
-            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.CreateAsync(authorToAdd));
+            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.CreateAuthorAsync(authorToAdd));
 
             return authorModel;
         }
 
         public async Task<IEnumerable<AuthorModel>> GetAllAuthorsAsync()
         {
-            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAllAsync());
+            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAuthorsAsync());
             
             return authors;
         }
@@ -58,7 +58,7 @@ namespace Store.BusinessLogic.Services
                 throw new ServerException(Constants.Errors.AUTHOR_ID_NOT_EXIST, Enums.Errors.BadRequest);
             }
 
-            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.GetEntityAsync(id));
+            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.GetAuthorByIdAsync(id));
 
             return authorModel;
         }
@@ -79,7 +79,7 @@ namespace Store.BusinessLogic.Services
 
             var authorToUpdate = _mapper.Map<AuthorModel, Author>(model);
 
-            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.UpdateAsync(authorToUpdate));
+            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.UpdateAuthorAsync(authorToUpdate));
 
             return authorModel;
         }
@@ -91,14 +91,14 @@ namespace Store.BusinessLogic.Services
                 throw new ServerException(Constants.Errors.AUTHOR_ID_NOT_EXIST, Enums.Errors.BadRequest);
             }
 
-            var author = await _authorRepository.GetEntityAsync(id);
+            var author = await _authorRepository.GetAuthorByIdAsync(id);
 
             if (author is null)
             {
                 throw new ServerException(Constants.Errors.AUTHOR_NOT_FOUND, Enums.Errors.NotFound);
             }
 
-            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.RemoveAsync(author));
+            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.RemoveAuthorAsync(author));
 
             return authorModel;
         }

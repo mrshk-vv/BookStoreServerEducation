@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
 using Store.DataAccess.Repositories.Interfaces;
+using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories
 {
-    public class UserRepository : IUserRepository<User>
+    public class UserRepository : IUserRepository
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -18,36 +20,67 @@ namespace Store.DataAccess.Repositories
             _roleManager = roleManager;
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
+        #region Working with UserList 
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _userManager.Users.ToListAsync();
         }
 
-        public async Task<User> GetEntityAsync(User entity)
+        public async Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize)
+        {
+            return await _userManager.Users.Skip(skip).Take(pageSize).ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter)
+        {
+            return await _userManager.Users.Where(user =>
+                user.IsBlocked == filter.Status ||
+                user.FirstName == GetUserFirstName(filter.UserName) ||
+                user.LastName == GetUserLastName(filter.UserName)).Skip(skip).Take(pageSize).ToListAsync();
+        }
+
+        private string GetUserFirstName(string fullName)
+        {
+            var fullNameArray = fullName.Split(' ');
+
+            return fullNameArray[0];
+        }
+
+        private string GetUserLastName(string fullName)
+        {
+            var fullNameArray = fullName.Split(' ');
+
+            return fullNameArray[1];
+        }
+
+        #endregion
+
+
+        public async Task<User> GetUserAsync(User entity)
         {
             return await _userManager.FindByEmailAsync(entity.Email);
         }
 
-        public async Task<User> GetEntityAsync(string id)
+        public async Task<User> GetUserAsync(string id)
         {
             return await _userManager.FindByIdAsync(id);
         }
 
-        public async Task<User> CreateAsync(User entity)
+        public async Task<User> CreateUserAsync(User entity)
         {
             await _userManager.CreateAsync(entity);
 
             return entity;
         }
 
-        public async Task<User> RemoveAsync(User entity)
+        public async Task<User> RemoveUserAsync(User entity)
         {
             await _userManager.DeleteAsync(entity);
 
             return entity;
         }
 
-        public async Task<User> UpdateAsync(User entity)
+        public async Task<User> UpdateUserAsync(User entity)
         {
             await _userManager.UpdateAsync(entity);
 
@@ -65,6 +98,11 @@ namespace Store.DataAccess.Repositories
             return res.Succeeded;
         }
 
+        public async Task<User> GetUserByIdAsync(string id)
+        {
+            return await _userManager.FindByIdAsync(id);
+        }
+
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
@@ -78,6 +116,7 @@ namespace Store.DataAccess.Repositories
             return user;
         }
 
+        #region Authorization
         public async Task<IList<string>> GetUserRolesAsync(User user)
         {
             return await _userManager.GetRolesAsync(user);
@@ -116,5 +155,6 @@ namespace Store.DataAccess.Repositories
 
             return refreshToken;
         }
+        #endregion
     }
 }

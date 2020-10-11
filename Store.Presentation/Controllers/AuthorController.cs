@@ -25,12 +25,21 @@ namespace Store.Presentation.Controllers
         [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> CreateAuthor([FromBody]AuthorModel model)
         {
-            return Ok(new { author = await _authorService.CreateAuthorAsync(model) });
+            if (ModelState.IsValid)
+            {
+                return Ok(new { author = await _authorService.CreateAuthorAsync(model) });
+            }
+
+            return BadRequest();
         }
 
         [HttpGet(Constants.Routes.AUTHOR_GET_ROUTE)]
         public async Task<IActionResult> GetAuthor(string id)
         {
+            if (id is null)
+            {
+                return NotFound();
+            }
             return Ok(new { author = await _authorService.GetAuthorByIdAsync(id) });
         }
 
@@ -44,6 +53,11 @@ namespace Store.Presentation.Controllers
         [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> RemoveAuthor(string id)
         {
+            if (id is null)
+            {
+                return NotFound();
+            }
+
             return Ok(new { author = await _authorService.RemoveAuthorAsync(id) });
         }
 
@@ -51,7 +65,12 @@ namespace Store.Presentation.Controllers
         [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> UpdateAuthor([FromBody]AuthorModel model)
         {
-            return Ok(new { author = await _authorService.UpdateAuthorAsync(model) });
+            if (ModelState.IsValid)
+            {
+                return Ok(new { author = await _authorService.UpdateAuthorAsync(model) });
+            }
+
+            return BadRequest();
         }
 }
 }
