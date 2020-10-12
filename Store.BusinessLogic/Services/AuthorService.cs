@@ -10,6 +10,8 @@ using Store.DataAccess.Repositories.Interfaces;
 using Store.Shared.Common;
 using Store.Shared.Constants;
 using Store.Shared.Enums;
+using Store.Shared.Filters;
+using Store.Shared.Pagination;
 
 namespace Store.BusinessLogic.Services
 {
@@ -23,7 +25,32 @@ namespace Store.BusinessLogic.Services
             _mapper = mapper;
             _authorRepository = authorRepository;
         }
-        
+
+        public async Task<IEnumerable<AuthorModel>> GetAuthorsAsync()
+        {
+            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAuthorsAsync());
+
+            return authors;
+        }
+        public async Task<IEnumerable<AuthorModel>> GetAuthorsAsync(PaginationQuery paginationFilter = null, AuthorFilter filter = null)
+        {
+            var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
+
+            if (filter.Name == null)
+            {
+                return _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(
+                    await _authorRepository.GetAuthorsAsync(skip,
+                        paginationFilter.PageSize));
+            }
+
+            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(
+                await _authorRepository.GetAuthorsAsync(skip,
+                    paginationFilter.PageSize,
+                    filter));
+
+            return authors;
+        }
+
         public async Task<AuthorModel> CreateAuthorAsync(AuthorModel model)
         {
             if (model is null)
@@ -42,13 +69,6 @@ namespace Store.BusinessLogic.Services
             var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.CreateAuthorAsync(authorToAdd));
 
             return authorModel;
-        }
-
-        public async Task<IEnumerable<AuthorModel>> GetAllAuthorsAsync()
-        {
-            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAuthorsAsync());
-            
-            return authors;
         }
 
         public async Task<AuthorModel> GetAuthorByIdAsync(string id)

@@ -41,6 +41,7 @@ namespace Store.DataAccess
             services.AddTransient(typeof(IUserRepository), typeof(UserRepository));
             services.AddTransient(typeof(IAuthorRepository), typeof(AuthorRepository));
             services.AddTransient(typeof(IPrintingEditionRepository), typeof(PrintingEditionRepository));
+            services.AddTransient(typeof(IAuthorInPERepository), typeof(AuthorInPERepository));
 
             await services.BuildServiceProvider().IdentityInitializerAsync();
 

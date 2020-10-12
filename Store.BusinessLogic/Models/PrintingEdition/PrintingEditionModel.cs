@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Store.BusinessLogic.Models.Author;
+using Store.BusinessLogic.Models.AuthorInPrintingEdition;
 
 namespace Store.BusinessLogic.Models.PrintingEdition
 {
@@ -15,7 +18,7 @@ namespace Store.BusinessLogic.Models.PrintingEdition
         public string Type { get; set; }
         [Required]
         public string Currency { get; set; }
-        public string AuthorName { get; set; }
+        public IList<AuthorInPEModel> Authors { get; set; }
         public bool IsRemoved { get; set; }
 
     }

@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Store.DataAccess.AppContext;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
 using Store.DataAccess.Repositories.Interfaces;
+using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories
 {
@@ -20,6 +19,25 @@ namespace Store.DataAccess.Repositories
         public async Task<IEnumerable<Author>> GetAuthorsAsync()
         {
             return await GetAllAsync();
+        }
+
+        public async Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize)
+        {
+            return await _dbSet.Skip(skip)
+                .Take(pageSize)
+                .Include(a => a.AuthorInPrintingEditions)
+                .ThenInclude(pe => pe.PrintingEdition)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize, AuthorFilter filter)
+        {
+            return await _dbSet.Where(a => a.Name == filter.Name)
+                .Skip(skip)
+                .Take(pageSize)
+                .Include(a => a.AuthorInPrintingEditions)
+                .ThenInclude(pe => pe.PrintingEdition)
+                .ToListAsync();
         }
 
         public async Task<Author> GetAuthorByIdAsync(string id)

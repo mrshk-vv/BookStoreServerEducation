@@ -6,9 +6,7 @@ using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Mapping;
 using Store.BusinessLogic.Services;
 using Store.DataAccess;
-using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories;
-using Store.DataAccess.Repositories.Interfaces;
 using Store.Shared.Common;
 
 
@@ -24,6 +22,7 @@ namespace Store.BusinessLogic
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient(typeof(IAuthorService), typeof(AuthorService));
             services.AddTransient(typeof(IPrintingEditionService), typeof(PrintingEditionService));
+            services.AddTransient(typeof(IAuthorInPEService), typeof(AuthorInPEService));
             services.AddSingleton<IUriService>(provider =>
             {
                 var accesor = provider.GetRequiredService<IHttpContextAccessor>();
@@ -39,7 +38,7 @@ namespace Store.BusinessLogic
                 configuration.AddProfile(new UserMapping());
                 configuration.AddProfile(new AuthorMapping());
                 configuration.AddProfile(new PrintingEditionMapping());
-                configuration.AddProfile(new RequestToDomainMapping());
+                configuration.AddProfile(new AuthorInPEMapping());
             });
 
             var mapper = mapperConfig.CreateMapper();

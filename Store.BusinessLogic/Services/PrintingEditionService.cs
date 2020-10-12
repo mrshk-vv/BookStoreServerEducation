@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -52,7 +53,7 @@ namespace Store.BusinessLogic.Services
 
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
 
-            if (filter.MaxPrice == 0 && filter.MinPrice == 0 && filter.Type != null)
+            if (filter.MaxPrice == Decimal.MaxValue && filter.MinPrice == 0 && filter.Type == null)
             {
                 return _mapper.Map<IEnumerable<PrintingEdition>, IEnumerable<PrintingEditionModel>>(
                         await _editionRepository.GetEditionsAsync(skip, paginationFilter.PageSize));

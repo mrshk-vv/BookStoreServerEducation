@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Store.DataAccess.AppContext;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
@@ -24,18 +26,21 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize)
         {
-            return await _dbSet.Skip(skip).Take(pageSize).ToListAsync();
+            return await _dbSet.Skip(skip).Take(pageSize)
+                .Include(pe => pe.AuthorInPrintingEditions)
+                .ThenInclude(aipe => aipe.Author)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize, PrintingEditionFilter filter)
         {
-            return await _dbSet.Where(pe =>
-                    pe.Price >= filter.MinPrice 
-                    && pe.Price <= filter.MaxPrice 
-                    || filter.Type == null ? true
-                        : pe.Type == filter.Type)
+            return await _dbSet.Include(pe => pe.AuthorInPrintingEditions)
+                    .ThenInclude(aipe => aipe.Author).Where(pe =>
+                     pe.Price >= filter.MinPrice
+                     && pe.Price <= filter.MaxPrice && pe.Type == filter.Type)
                 .Skip(skip)
-                .Take(pageSize).ToListAsync();
+                .Take(pageSize) 
+                .ToListAsync();
         }
 
         public async Task<PrintingEdition> GetEditionByIdAsync(string id)

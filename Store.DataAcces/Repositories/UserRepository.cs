@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
@@ -33,24 +34,45 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter)
         {
-            return await _userManager.Users.Where(user =>
-                user.IsBlocked == filter.Status ||
-                user.FirstName == GetUserFirstName(filter.UserName) ||
-                user.LastName == GetUserLastName(filter.UserName)).Skip(skip).Take(pageSize).ToListAsync();
+            var firstName = GetUserFirstName(filter.UserName);
+            var lastName = GetUserLastName(filter.UserName);
+
+            var list = await _userManager.Users
+                .Where(u => u.FirstName == firstName && u.LastName == lastName)
+                .Skip(skip).Take(pageSize).ToListAsync();
+
+            return list;
+
         }
 
         private string GetUserFirstName(string fullName)
         {
-            var fullNameArray = fullName.Split(' ');
+            if (fullName != null)
+            {
+                var fullNameArray = fullName.Split(' ');
+                Console.WriteLine(fullNameArray[0]);
 
-            return fullNameArray[0];
+                return fullNameArray[0];
+            }
+
+            return null;
         }
 
         private string GetUserLastName(string fullName)
         {
-            var fullNameArray = fullName.Split(' ');
+            if (fullName != null)
+            {
+                var fullNameArray = fullName.Split(' ');
+                if (fullNameArray.Length > 1)
+                {
+                    Console.WriteLine(fullNameArray[1]);
+                    return fullNameArray[1];
+                }
 
-            return fullNameArray[1];
+                return null;
+            }
+
+            return null;
         }
 
         #endregion
@@ -90,7 +112,7 @@ namespace Store.DataAccess.Repositories
         public async Task<bool> CreateAsync(User entity, string password)
         {
             var res = await _userManager.CreateAsync(entity, password);
-            if(!res.Succeeded)
+            if (!res.Succeeded)
             {
                 return false;
             }

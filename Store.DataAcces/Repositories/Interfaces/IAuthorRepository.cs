@@ -4,12 +4,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Primitives;
 using Store.DataAccess.Entities;
+using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories.Interfaces
 {
     public interface IAuthorRepository
     {
         public Task<IEnumerable<Author>> GetAuthorsAsync();
+        public Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize);
+        public Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize, AuthorFilter filter);
         public Task<Author> GetAuthorByIdAsync(string id);
         public Task<Author> GetAuthorByNameAsync(string name);
         public Task<Author> CreateAuthorAsync(Author entity);

@@ -53,6 +53,13 @@ namespace Store.BusinessLogic.Services
             var userList = _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
                 await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize,filter));
 
+            if (filter.Status)
+            {
+                userList = userList.OrderBy(u => u.IsBlocked);
+            }
+
+            userList = userList.OrderByDescending(u => u.IsBlocked);
+
             return userList;
         }
 
