@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using AutoMapper;
-using Store.BusinessLogic.Models.AuthorInPrintingEdition;
+﻿using AutoMapper;
 using Store.BusinessLogic.Models.PrintingEdition;
 using Store.DataAccess.Entities;
 
@@ -11,22 +9,22 @@ namespace Store.BusinessLogic.Mapping
         public PrintingEditionMapping()
         {
             CreateMap<PrintingEdition, PrintingEditionModel>()
-                .ForMember(p => p.Authors,
-                    a => a.MapFrom(n =>
-                        n.AuthorInPrintingEditions.Where(p => p.PrintingEditionId == n.Id)
-                        ));
+                .ForMember(pem => pem.Title, opt => opt.MapFrom(pe => pe.Title))
+                .ForMember(pem => pem.Description, opt => opt.MapFrom(pe => pe.Description))
+                .ForMember(pem => pem.EditionCurrency, opt => opt.MapFrom(pe => pe.EditionCurrency))
+                .ForMember(pem => pem.EditionType, opt => opt.MapFrom(pe => pe.EditionType))
+                .ForMember(pem => pem.Price, opt => opt.MapFrom(pe => pe.Price))
+                .ForMember(pem => pem.IsRemoved, opt => opt.MapFrom(pe => pe.IsRemoved))
+                .ForMember(pem => pem.Id, opt => opt.MapFrom(pe => pe.Id));
 
             CreateMap<PrintingEditionModel, PrintingEdition>()
-                .ForMember(pe => pe.Title, e => e.MapFrom(pem => pem.Title))
-                .ForMember(pe => pe.Currency, e => e.MapFrom(pem => pem.Currency))
-                .ForMember(pe => pe.Description, e => e.MapFrom(pem => pem.Description))
-                .ForMember(pe => pe.Type, e => e.MapFrom(pem => pem.Type))
-                .ForMember(pe => pe.Price, e => e.MapFrom(pem => pem.Price))
-                .ForMember(pe => pe.IsRemoved, e => e.MapFrom(pem => pem.IsRemoved));
-
-            // CreateMap<PrintingEditionModel, AuthorInPEModel>()
-            //     .ForMember(a => a.AuthorId, ap => ap.MapFrom(pem => pem.AuthorId))
-            //     .ForMember(pe => pe.PrintingEditionId, ap => ap.MapFrom(pem => pem.Id));
+                .ForMember(pe => pe.Title, opt => opt.MapFrom(pem => pem.Title))
+                .ForMember(pe => pe.Description, opt => opt.MapFrom(pem => pem.Description))
+                .ForMember(pe => pe.EditionCurrency, opt => opt.MapFrom(pem => pem.EditionCurrency))
+                .ForMember(pe => pe.EditionType, opt => opt.MapFrom(pem => pem.EditionType))
+                .ForMember(pe => pe.Price, opt => opt.MapFrom(pem => pem.Price))
+                .ForMember(pe => pe.IsRemoved, opt => opt.MapFrom(pem => pem.IsRemoved))
+                .ForMember(pe => pe.Id, opt => opt.MapFrom(pem => pem.Id));
         }
     }
 }

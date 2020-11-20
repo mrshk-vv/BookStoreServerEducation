@@ -15,6 +15,7 @@ namespace Store.DataAccess.Repositories.Interfaces
         public Task<PrintingEdition> RemoveEditionAsync(PrintingEdition entity);
         public Task DeleteEditionAsync(PrintingEdition entity);
         public Task<PrintingEdition> UpdateEditionAsync(PrintingEdition entity);
-        public Task<PrintingEdition> GetEdititonByTitle(string title);
+        public Task<PrintingEdition> GetEditionByTitle(string title);
+        public Task<PrintingEdition> GetEditionByTitle(string title, int peId);
     }
 }

@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Models.Author;
-using Store.BusinessLogic.Models.PrintingEdition;
 using Store.Presentation.Providers.Pagination;
 using Store.Shared.Constants;
 using Store.Shared.Filters;
@@ -15,6 +10,7 @@ using Store.Shared.Pagination;
 
 namespace Store.Presentation.Controllers
 {
+    [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthorController : ControllerBase
@@ -28,12 +24,11 @@ namespace Store.Presentation.Controllers
         }
 
         [HttpPost(Constants.Routes.AUTHOR_CREATE_ROUTE)]
-        [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> CreateAuthor([FromBody]AuthorModel model)
+        public async Task<IActionResult> CreateAuthor([FromBody]AuthorItemModel model)
         {
             if (ModelState.IsValid)
             {
-                return Ok(new { author = await _authorService.CreateAuthorAsync(model) });
+                return Ok(await _authorService.CreateAuthorAsync(model));
             }
 
             return BadRequest();
@@ -46,11 +41,11 @@ namespace Store.Presentation.Controllers
             {
                 return NotFound();
             }
-            return Ok(new { author = await _authorService.GetAuthorByIdAsync(id) });
+            return Ok(await _authorService.GetAuthorByIdAsync(id));
         }
 
         [HttpGet(Constants.Routes.AUTHORS_GET_ALL_ROUTE)]
-        public async Task<IActionResult> GetAuthors([FromQuery]PaginationQuery paginationQuery,[FromQuery]AuthorFilter filter)
+        public async Task<IActionResult> GetAuthors([FromQuery]PaginationQuery paginationQuery, [FromQuery]AuthorFilter filter)
         {
             var authorResponse = await _authorService.GetAuthorsAsync();
 
@@ -69,8 +64,37 @@ namespace Store.Presentation.Controllers
             return Ok(paginationResponse);
         }
 
+        [HttpPost(Constants.Routes.AUTHOR_UPDATE_ROUTE)]
+        public async Task<IActionResult> UpdateAuthor([FromBody]AuthorItemModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                return Ok(await _authorService.UpdateAuthorAsync(model));
+            }
+
+            return BadRequest();
+        }
+
+        [HttpGet(Constants.Routes.AUTHORS_GET_LIST_ROUTE)]
+        public async Task<IActionResult> GetListAuthors()
+        {
+            return Ok(await _authorService.GetAuthorsAsync());
+        }
+
+        [HttpPost(Constants.Routes.AUTHOR_DELETE_ROUTE)]
+        public async Task<IActionResult> DeleteAuthor(string id)
+        {
+            if (id is null)
+            {
+                return BadRequest();
+            }
+
+            await _authorService.DeleteAuthorAsync(id);
+
+            return Ok();
+        }
+
         [HttpPost(Constants.Routes.AUTHOR_REMOVE_ROUTE)]
-        [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> RemoveAuthor(string id)
         {
             if (id is null)
@@ -78,19 +102,7 @@ namespace Store.Presentation.Controllers
                 return NotFound();
             }
 
-            return Ok(new { author = await _authorService.RemoveAuthorAsync(id) });
+            return Ok(await _authorService.RemoveAuthorAsync(id));
         }
-
-        [HttpPost(Constants.Routes.AUTHOR_UPDATE_ROUTE)]
-        [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> UpdateAuthor([FromBody]AuthorModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                return Ok(new { author = await _authorService.UpdateAuthorAsync(model) });
-            }
-
-            return BadRequest();
-        }
-}
+    }
 }

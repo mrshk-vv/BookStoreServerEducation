@@ -29,17 +29,37 @@ namespace Store.DataAccess.Repositories
 
         public async Task<AuthorInPrintingEdition> AddAuthorToPE(AuthorInPrintingEdition model)
         {
-            return await CreateAsync(model);
+            await CreateAsync(model);
+
+            return model;
+        }
+
+        public async Task AddAuthorsToPE(IEnumerable<AuthorInPrintingEdition> authors)
+        {
+            await AddRangeAsync(authors);
         }
 
         public async Task RemoveAuthorFromPE(AuthorInPrintingEdition model)
         {
             await DeleteAsync(model);
         }
-
-        public async Task<AuthorInPrintingEdition> UpdateAuthorsInPE(AuthorInPrintingEdition model)
+        public async Task RemoveAuthorsFromPE(IEnumerable<AuthorInPrintingEdition> list)
         {
-            return await UpdateAsync(model);
+            await DeleteRangeAsync(list);
+        }
+
+        public async Task<AuthorInPrintingEdition> UpdateAuthorInPE(AuthorInPrintingEdition model)
+        {
+            await UpdateAsync(model);
+
+            return model;
+        }
+
+        public async Task<List<AuthorInPrintingEdition>> UpdateAuthorsInPE(List<AuthorInPrintingEdition> list)
+        {
+            await UpdateRangeAsync(list);
+
+            return list;
         }
     }
 }

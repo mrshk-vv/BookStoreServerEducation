@@ -24,24 +24,27 @@ namespace Store.DataAccess
 
             services.AddIdentity<User, IdentityRole>(opts =>
                 {
-                    opts.Password.RequiredLength = 5;
+                    opts.Password.RequiredLength = 8;
                     opts.Password.RequireNonAlphanumeric = false;
                     opts.Password.RequireLowercase = false;
                     opts.Password.RequireUppercase = false;
                     opts.Password.RequireDigit = false;
                     
                     opts.User.RequireUniqueEmail = true;
-                    opts.User.AllowedUserNameCharacters = allowedUserNameCharacters;
                     opts.SignIn.RequireConfirmedEmail = true;
+                    opts.User.AllowedUserNameCharacters = allowedUserNameCharacters;
                 })
                 .AddEntityFrameworkStores<ApplicationContext>()
                 .AddDefaultTokenProviders()
                 .AddTokenProvider("StoreServer", typeof(DataProtectorTokenProvider<User>));
 
             services.AddTransient(typeof(IUserRepository), typeof(UserRepository));
-            services.AddTransient(typeof(IAuthorRepository), typeof(AuthorRepository));
-            services.AddTransient(typeof(IPrintingEditionRepository), typeof(PrintingEditionRepository));
-            services.AddTransient(typeof(IAuthorInPERepository), typeof(AuthorInPERepository));
+            services.AddScoped<IAuthorRepository, AuthorRepository>();
+            services.AddScoped<IPrintingEditionRepository, PrintingEditionRepository>();
+            services.AddScoped<IAuthorInPERepository, AuthorInPERepository>();
+            services.AddTransient(typeof(IOrderRepository), typeof(OrderRepository));
+            services.AddTransient(typeof(IOrderItemRepository), typeof(OrderItemRepository));
+            services.AddTransient(typeof(IPaymentRepository), typeof(PaymentRepository));
 
             await services.BuildServiceProvider().IdentityInitializerAsync();
 

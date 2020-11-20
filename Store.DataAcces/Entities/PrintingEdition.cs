@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
+using Store.Shared.Enums;
 
 namespace Store.DataAccess.Entities
 {
@@ -11,8 +10,11 @@ namespace Store.DataAccess.Entities
         public string Description { get; set; }
         [Column(TypeName = "decimal(18,4)")]
         public decimal Price { get; set; }
-        public string Type { get; set; }
-        public string Currency { get; set; }
-        public IList<AuthorInPrintingEdition> AuthorInPrintingEditions { get; set; }
+        [Column(TypeName = "nvarchar(24)")]
+        public Enums.Edition EditionType { get; set; }
+        [Column(TypeName = "nvarchar(24)")]
+        public Enums.Currency EditionCurrency { get; set; }
+        public bool IsRemoved { get; set; }
+        public List<AuthorInPrintingEdition> AuthorInPrintingEditions { get; set; }
     }
 }

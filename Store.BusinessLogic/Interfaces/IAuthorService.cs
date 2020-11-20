@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Store.BusinessLogic.Models.Author;
 using Store.Shared.Filters;
@@ -12,9 +10,10 @@ namespace Store.BusinessLogic.Interfaces
     {
         public Task<IEnumerable<AuthorModel>> GetAuthorsAsync();
         public Task<IEnumerable<AuthorModel>> GetAuthorsAsync(PaginationQuery paginationFilter, AuthorFilter filter);
-        public Task<AuthorModel> CreateAuthorAsync(AuthorModel model);
+        public Task<AuthorModel> CreateAuthorAsync(AuthorItemModel model);
         public Task<AuthorModel> GetAuthorByIdAsync(string id);
-        public Task<AuthorModel> UpdateAuthorAsync(AuthorModel model);
+        public Task<AuthorModel> UpdateAuthorAsync(AuthorItemModel model);
         public Task<AuthorModel> RemoveAuthorAsync(string id);
+        public Task DeleteAuthorAsync(string id);
     }
 }

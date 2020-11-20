@@ -182,10 +182,12 @@ namespace Store.BusinessLogic.Services
 
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim("email", user.Email),
+                new Claim("firstName", user.FirstName),
+                new Claim("lastName", user.LastName)
             };
 
-            claims.AddRange(userRoles.Select(item => new Claim(ClaimsIdentity.DefaultRoleClaimType, item)));
+            claims.AddRange(userRoles.Select(item => new Claim("role", item)));
 
             ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims,
                 "Token",

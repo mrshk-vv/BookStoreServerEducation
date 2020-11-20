@@ -30,8 +30,10 @@ namespace Store.Presentation
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-
+            //services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            );
             var authOptions = configuration.GetSection("JwtOptions");
             var jwtConf = configuration.GetSection("JwtOptions").Get<JwtOptions>();
             services.Configure<JwtOptions>(authOptions);
@@ -85,17 +87,17 @@ namespace Store.Presentation
                     Type = SecuritySchemeType.ApiKey
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        new string[] { }
-                    }
+                     {
+                         new OpenApiSecurityScheme
+                         {
+                             Reference = new OpenApiReference
+                             {
+                                 Type = ReferenceType.SecurityScheme,
+                                 Id = "Bearer"
+                             }
+                         },
+                         new string[] { }
+                     }
                 });
             });
 
@@ -124,13 +126,13 @@ namespace Store.Presentation
             //---------------------
 
             //Swagger
-            app.UseSwagger();
+             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
             //---------------------
-            
+
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Store.DataAccess.Entities;
 using Store.Shared.Enums;
@@ -10,6 +9,34 @@ namespace Store.DataAccess.Initialize
     {
         public static void DataInitializer(this ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .Entity<PrintingEdition>()
+                .Property(e => e.EditionType)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (Enums.Edition)Enum.Parse(typeof(Enums.Edition), v));
+
+            modelBuilder
+                .Entity<PrintingEdition>()
+                .Property(e => e.EditionCurrency)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (Enums.Currency)Enum.Parse(typeof(Enums.Currency), v));
+
+            modelBuilder
+                .Entity<Order>()
+                .Property(e => e.Status)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (Enums.Status)Enum.Parse(typeof(Enums.Status), v));
+
+            modelBuilder
+                .Entity<OrderItem>()
+                .Property(e => e.Currency)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (Enums.Currency)Enum.Parse(typeof(Enums.Currency), v));
+
             modelBuilder.Entity<AuthorInPrintingEdition>()
                 .HasKey(table => new { table.AuthorId, table.PrintingEditionId });
 
@@ -38,9 +65,9 @@ namespace Store.DataAccess.Initialize
                     Title = "The Adventures of Tom Sawyer",
                     Description = "This Description",
                     Price = 100,
-                    Currency = Enums.Currency.USD.ToString(),
+                    EditionCurrency = Enums.Currency.USD,
                     IsRemoved = false,
-                    Type = Enums.Edition.Book.ToString()
+                    EditionType = Enums.Edition.Book
                 });
 
             modelBuilder.Entity<AuthorInPrintingEdition>()

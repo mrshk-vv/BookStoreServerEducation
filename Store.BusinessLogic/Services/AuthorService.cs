@@ -26,91 +26,73 @@ namespace Store.BusinessLogic.Services
             _authorRepository = authorRepository;
         }
 
+        public async Task<AuthorModel> CreateAuthorAsync(AuthorItemModel model)
+        {
+            var author = await _authorRepository.GetAuthorByNameAsync(model.Name);
+
+            if (author is null)
+            {
+                var authorToAdd = _mapper.Map<AuthorItemModel, Author>(model);
+                var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.CreateAuthorAsync(authorToAdd));
+
+                return authorModel;
+            }
+
+            throw new ServerException(Constants.Errors.AUTHOR_ALREADY_EXIST, Enums.Errors.BadRequest);
+        }
+
         public async Task<IEnumerable<AuthorModel>> GetAuthorsAsync()
         {
-            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAuthorsAsync());
+            var authors =
+                _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(await _authorRepository.GetAuthorsAsync());
 
             return authors;
         }
+
         public async Task<IEnumerable<AuthorModel>> GetAuthorsAsync(PaginationQuery paginationFilter = null, AuthorFilter filter = null)
         {
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
 
             if (filter.Name == null)
             {
-                return _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(
-                    await _authorRepository.GetAuthorsAsync(skip,
-                        paginationFilter.PageSize));
+                var authorsNoFilter = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>
+                    (await _authorRepository.GetAuthorsAsync(skip, paginationFilter.PageSize));
+
+                return authorsNoFilter;
+
             }
 
-            var authors = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>(
-                await _authorRepository.GetAuthorsAsync(skip,
-                    paginationFilter.PageSize,
-                    filter));
+            var authorsFilter = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>
+                (await _authorRepository.GetAuthorsAsync(skip, paginationFilter.PageSize));
 
-            return authors;
-        }
-
-        public async Task<AuthorModel> CreateAuthorAsync(AuthorModel model)
-        {
-            if (model is null)
-            {
-                throw new ServerException(Constants.Errors.AUTHOR_EMPTY, Enums.Errors.BadRequest);
-            }
-
-            var author = await _authorRepository.GetAuthorByNameAsync(model.Name);
-
-            if (!(author is null))
-            {
-                throw new ServerException(Constants.Errors.AUTHOR_ALREADY_EXIST, Enums.Errors.BadRequest);
-            }
-
-            var authorToAdd = _mapper.Map<AuthorModel, Author>(model);
-            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.CreateAuthorAsync(authorToAdd));
-
-            return authorModel;
+            return authorsFilter;
         }
 
         public async Task<AuthorModel> GetAuthorByIdAsync(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ServerException(Constants.Errors.AUTHOR_ID_NOT_EXIST, Enums.Errors.BadRequest);
-            }
-
-            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.GetAuthorByIdAsync(id));
-
-            return authorModel;
+            var author = _mapper.Map<Author, AuthorModel>(await _authorRepository.GetAuthorByIdAsync(id));
+            return author;
         }
 
-        public async Task<AuthorModel> UpdateAuthorAsync(AuthorModel model)
+        public async Task<AuthorModel> UpdateAuthorAsync(AuthorItemModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.Name))
-            {
-                throw new ServerException(Constants.Errors.AUTHOR_EMPTY, Enums.Errors.BadRequest);
-            }
-
             var author = await _authorRepository.GetAuthorByNameAsync(model.Name);
 
-            if (!(author is null))
+            if (author != null)
             {
                 throw new ServerException(Constants.Errors.AUTHOR_ALREADY_EXIST,Enums.Errors.BadRequest);
             }
 
-            var authorToUpdate = _mapper.Map<AuthorModel, Author>(model);
+            var authorToUpdate = _mapper.Map<AuthorItemModel, Author>(model);
 
-            var authorModel = _mapper.Map<Author, AuthorModel>(await _authorRepository.UpdateAuthorAsync(authorToUpdate));
+            var authorUpdated = 
+                _mapper.Map<Author, AuthorModel>(await _authorRepository.UpdateAuthorAsync(authorToUpdate));
 
-            return authorModel;
+            return authorUpdated;
         }
 
         public async Task<AuthorModel> RemoveAuthorAsync(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ServerException(Constants.Errors.AUTHOR_ID_NOT_EXIST, Enums.Errors.BadRequest);
-            }
-
             var author = await _authorRepository.GetAuthorByIdAsync(id);
 
             if (author is null)
@@ -118,9 +100,21 @@ namespace Store.BusinessLogic.Services
                 throw new ServerException(Constants.Errors.AUTHOR_NOT_FOUND, Enums.Errors.NotFound);
             }
 
-            var authorModel = _mapper.Map<Author,AuthorModel>(await _authorRepository.RemoveAuthorAsync(author));
+            var authorRemoved = _mapper.Map<Author,AuthorModel>(await _authorRepository.RemoveAuthorAsync(author));
 
-            return authorModel;
+            return authorRemoved;
+        }
+
+        public async Task DeleteAuthorAsync(string id)
+        {
+            var author = await _authorRepository.GetAuthorByIdAsync(id);
+
+            if (author is null)
+            {
+                throw new ServerException(Constants.Errors.AUTHOR_NOT_FOUND, Enums.Errors.NotFound);
+            }
+
+            await _authorRepository.DeleteAuthorAsync(author);
         }
     }
 }
