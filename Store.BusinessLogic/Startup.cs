@@ -6,7 +6,6 @@ using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Mapping;
 using Store.BusinessLogic.Services;
 using Store.DataAccess;
-using Store.DataAccess.Repositories;
 using Store.Shared.Common;
 
 
@@ -22,7 +21,9 @@ namespace Store.BusinessLogic
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient(typeof(IAuthorService), typeof(AuthorService));
             services.AddTransient(typeof(IPrintingEditionService), typeof(PrintingEditionService));
-            services.AddTransient(typeof(IAuthorInPEService), typeof(AuthorInPEService));
+            services.AddTransient(typeof(IOrderService), typeof(OrderService));
+            services.AddTransient(typeof(ICartService), typeof(CartService));
+
             services.AddSingleton<IUriService>(provider =>
             {
                 var accesor = provider.GetRequiredService<IHttpContextAccessor>();
@@ -31,6 +32,8 @@ namespace Store.BusinessLogic
                 return new UriService(absolureUri);
             });
 
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.DataAccessInitializer(configuration);
 
             var mapperConfig = new MapperConfiguration(configuration =>
@@ -38,12 +41,10 @@ namespace Store.BusinessLogic
                 configuration.AddProfile(new UserMapping());
                 configuration.AddProfile(new AuthorMapping());
                 configuration.AddProfile(new PrintingEditionMapping());
-                configuration.AddProfile(new AuthorInPEMapping());
+                configuration.AddProfile(new OrderMapping());
             });
 
             var mapper = mapperConfig.CreateMapper();
-
-            //Inject dependencies
             services.AddSingleton(mapper);
 
         }

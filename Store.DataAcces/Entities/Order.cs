@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
+using Store.Shared.Enums;
 
 namespace Store.DataAccess.Entities
 {
@@ -12,6 +13,7 @@ namespace Store.DataAccess.Entities
         public DateTime Date { get; set; }
         public int PaymentId { get; set; }
         public Payment Payment { get; set; }
-        public bool IsCanceled { get; set; }
+        [Column(TypeName = "nvarchar(24)")]
+        public Enums.Status Status { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using System.Threading.Tasks;
+using System.Web;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Models.Tokens;
@@ -18,17 +20,19 @@ namespace Store.Presentation.Controllers
         private readonly JwtProvider _jwtProvider;
         private readonly IAccountService _accountService;
         private readonly EmailProvider _emailProvider;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(IAccountService accountService, JwtProvider jwtProvider, EmailProvider emailProvider)
+        public AccountController(IAccountService accountService, JwtProvider jwtProvider, EmailProvider emailProvider, IConfiguration configuration)
         {
             _accountService = accountService;
             _jwtProvider = jwtProvider;
             _emailProvider = emailProvider;
+            _configuration = configuration;
         }
 
 
         [HttpPost(Constants.Routes.SIGN_IN_ROUTE)]
-        public async Task<IActionResult> SingIn([FromBody] UserSignInModel model)
+        public async Task<IActionResult> SingIn([FromBody]UserSignInModel model)
         {
             await _accountService.SignInAsync(model);
             TokenResponseModel token = await _jwtProvider.GetTokensAsync(model.Email);
@@ -43,43 +47,50 @@ namespace Store.Presentation.Controllers
 
             string confToken = await _accountService.GenerateConfirmTokenAsync(model);
 
-            var callBackUrl = Url.Action(
-                "ConfirmEmail",
-                "Account",
-                new { email = model.Email, code = confToken },
-                protocol: HttpContext.Request.Scheme
-            );
+            var uriBuilder = new UriBuilder(_configuration["ReturnsPath:ConfirmEmail"]);
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query["email"] = model.Email;
+            query["code"] = confToken;
+            uriBuilder.Query = query.ToString();
+            var uriString = uriBuilder.ToString();
+
             await _emailProvider.SendMailAsync(model.Email,
                 "Verification Email",
-                $"click this link for complete registration <a href={callBackUrl}>Click to finish</a>"
+                $"Click this link for complete registration. <a href={uriString}>Click to finish</a>"
             );
 
-            return Ok("SingUp complete");
+            return Ok();
         }
 
-        [HttpGet(Constants.Routes.CONFIRM_EMAIL_ROUTE)]
+        [HttpPost(Constants.Routes.CONFIRM_EMAIL_ROUTE)]
         public async Task<IActionResult> ConfirmEmail(string email, string code)
         {
+            code = code.Replace(' ', '+');
+
+            if ((email is null && code is null) || email is null || code is null)
+            {
+                return BadRequest();
+            }
             await _accountService.ConfirmEmailAsync(email, code);
 
-            return Ok("User complete registration");
+            return Ok();
         }
 
-        [HttpPost(Constants.Routes.SING_OUT_ROUTE)]
+        [HttpPost(Constants.Routes.SIGN_OUT_ROUTE)]
         public async Task<IActionResult> SingOut()
         {
             await _accountService.SignOutAsync();
 
-            return Ok("SingOut complete");
+            return Ok();
         }
 
-        [HttpPost(Constants.Routes.RESET_PASSWORD)]
+        [HttpPost(Constants.Routes.RESET_PASSWORD_ROUTE)]
         public async Task<IActionResult> ResetPassword([FromBody] ForgotPasswordModel model)
         {
             var password = await _accountService.ForgotPasswordAsync(model.Email);
-            await _emailProvider.SendMailAsync(model.Email, "Password", $"Your new temp password {password}");
+            await _emailProvider.SendMailAsync(model.Email, "Password", $"Your new password {password}");
 
-            return Ok("Reset password complete");
+            return Ok();
         }
 
         [HttpPost(Constants.Routes.TOKENS_REFRESHING_ROUTE)]

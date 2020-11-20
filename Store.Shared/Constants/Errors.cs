@@ -22,11 +22,17 @@ namespace Store.Shared.Constants
             public const string AUTHOR_ID_NOT_EXIST = "AuthorId not exist";
             public const string AUTHOR_ALREADY_EXIST = "Author already exist";
 
-            //Author errors
+            //Edition errors
             public const string EDITION_EMPTY = "Data about Edition is empty";
             public const string EDITION_NOT_FOUND = "Edition not found";
             public const string EDITION_ID_NOT_EXIST = "EditionId not exist";
             public const string EDITION_ALREADY_EXIST = "Edition already exist";
+
+            //OrderItem errors
+            public const string ORDER_ITEM_EMPTY = "Data about Edition is empty";
+            public const string ORDER_ITEM_NOT_FOUND = "Edition not found";
+            public const string ORDER_ITEM_ID_NOT_EXIST = "EditionId not exist";
+            public const string ORDER_ITEM_ALREADY_EXIST = "Edition already exist";
 
         }
     }

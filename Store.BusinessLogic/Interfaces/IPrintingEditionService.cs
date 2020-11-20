@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Store.BusinessLogic.Models.PrintingEdition;
+using Store.DataAccess.Entities;
 using Store.Shared.Filters;
 using Store.Shared.Pagination;
 

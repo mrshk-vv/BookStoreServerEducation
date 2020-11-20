@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
 using Store.DataAccess.Repositories.Interfaces;
+using Store.Shared.Enums;
 using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories
@@ -114,6 +115,7 @@ namespace Store.DataAccess.Repositories
             var res = await _userManager.CreateAsync(entity, password);
             if (!res.Succeeded)
             {
+                await _userManager.AddToRoleAsync(entity, Enums.Roles.Client.ToString());
                 return false;
             }
 

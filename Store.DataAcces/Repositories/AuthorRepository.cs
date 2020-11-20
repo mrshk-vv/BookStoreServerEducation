@@ -23,20 +23,18 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize)
         {
-            return await _dbSet.Skip(skip)
+            return await _dbSet.Include("AuthorInPrintingEditions.PrintingEdition")
+                .Skip(skip)
                 .Take(pageSize)
-                .Include(a => a.AuthorInPrintingEditions)
-                .ThenInclude(pe => pe.PrintingEdition)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Author>> GetAuthorsAsync(int skip, int pageSize, AuthorFilter filter)
         {
-            return await _dbSet.Where(a => a.Name == filter.Name)
+            return await _dbSet.Include("AuthorInPrintingEditions.PrintingEdition")
+                .Where(a => a.Name == filter.Name)
                 .Skip(skip)
                 .Take(pageSize)
-                .Include(a => a.AuthorInPrintingEditions)
-                .ThenInclude(pe => pe.PrintingEdition)
                 .ToListAsync();
         }
 
@@ -49,7 +47,7 @@ namespace Store.DataAccess.Repositories
 
         public async Task<Author> GetAuthorByNameAsync(string name)
         {
-            return await _dbSet.FirstOrDefaultAsync(a => a.Name == name);
+            return await _dbSet.FirstOrDefaultAsync(a => a.Name.Equals(name));
         }
 
         public async Task<Author> CreateAuthorAsync(Author entity)

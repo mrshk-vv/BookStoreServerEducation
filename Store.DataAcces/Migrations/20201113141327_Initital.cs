@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Store.DataAccess.Migrations
 {
-    public partial class Initial : Migration
+    public partial class Initital : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -56,8 +56,8 @@ namespace Store.DataAccess.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IsRemoved = table.Column<bool>(nullable: false),
-                    Name = table.Column<string>(nullable: true)
+                    Name = table.Column<string>(nullable: true),
+                    IsRemoved = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,7 +70,6 @@ namespace Store.DataAccess.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IsRemoved = table.Column<bool>(nullable: false),
                     TransactionId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -84,12 +83,12 @@ namespace Store.DataAccess.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IsRemoved = table.Column<bool>(nullable: false),
                     Title = table.Column<string>(nullable: true),
                     Description = table.Column<string>(nullable: true),
                     Price = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
-                    Type = table.Column<string>(nullable: true),
-                    Currency = table.Column<string>(nullable: true)
+                    EditionType = table.Column<string>(type: "nvarchar(24)", nullable: false),
+                    EditionCurrency = table.Column<string>(type: "nvarchar(24)", nullable: false),
+                    IsRemoved = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -208,12 +207,11 @@ namespace Store.DataAccess.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IsRemoved = table.Column<bool>(nullable: false),
                     Description = table.Column<string>(nullable: true),
                     UserId = table.Column<string>(nullable: true),
                     Date = table.Column<DateTime>(nullable: false),
                     PaymentId = table.Column<int>(nullable: false),
-                    IsCanceled = table.Column<bool>(nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(24)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -263,11 +261,9 @@ namespace Store.DataAccess.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    IsRemoved = table.Column<bool>(nullable: false),
                     Amount = table.Column<int>(nullable: false),
-                    Currency = table.Column<string>(nullable: true),
-                    PrintingEditionId = table.Column<string>(nullable: true),
-                    PrintingEditionId1 = table.Column<int>(nullable: true),
+                    Currency = table.Column<string>(type: "nvarchar(24)", nullable: false),
+                    PrintingEditionId = table.Column<int>(nullable: false),
                     OrderId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -280,11 +276,11 @@ namespace Store.DataAccess.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_OrderItems_PrintingEditions_PrintingEditionId1",
-                        column: x => x.PrintingEditionId1,
+                        name: "FK_OrderItems_PrintingEditions_PrintingEditionId",
+                        column: x => x.PrintingEditionId,
                         principalTable: "PrintingEditions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
@@ -294,13 +290,13 @@ namespace Store.DataAccess.Migrations
 
             migrationBuilder.InsertData(
                 table: "PrintingEditions",
-                columns: new[] { "Id", "Currency", "Description", "IsRemoved", "Price", "Title", "Type" },
-                values: new object[] { 1, "USD", "This Description", false, 100m, "The Adventures of Tom Sawyer", "Book" });
+                columns: new[] { "Id", "Description", "EditionCurrency", "EditionType", "IsRemoved", "Price", "Title" },
+                values: new object[] { 1, "This Description", "USD", "Book", false, 100m, "The Adventures of Tom Sawyer" });
 
             migrationBuilder.InsertData(
                 table: "AuthorInPrintingEditions",
                 columns: new[] { "AuthorId", "PrintingEditionId", "Date" },
-                values: new object[] { 1, 1, new DateTime(2020, 10, 5, 14, 43, 23, 393, DateTimeKind.Local).AddTicks(2710) });
+                values: new object[] { 1, 1, new DateTime(2020, 11, 13, 16, 13, 27, 55, DateTimeKind.Local).AddTicks(4733) });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -352,9 +348,9 @@ namespace Store.DataAccess.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderItems_PrintingEditionId1",
+                name: "IX_OrderItems_PrintingEditionId",
                 table: "OrderItems",
-                column: "PrintingEditionId1");
+                column: "PrintingEditionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_PaymentId",

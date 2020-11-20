@@ -15,13 +15,14 @@ namespace Store.DataAccess.AppContext
         public virtual DbSet<OrderItem> OrderItems { get; set; }
         public virtual DbSet<Payment> Payments { get; set; }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
+        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options){}
 
         public class ApplicationContextFactory : IDesignTimeDbContextFactory<ApplicationContext>
         {
             public ApplicationContext CreateDbContext(string[] args)
             {
                 var optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
+                optionsBuilder.EnableSensitiveDataLogging();
                 optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=StoreDB;Trusted_Connection=true"
                     );
 
@@ -32,7 +33,6 @@ namespace Store.DataAccess.AppContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.DataInitializer();
-
             base.OnModelCreating(modelBuilder);
         }
 

@@ -21,37 +21,42 @@ namespace Store.DataAccess.Repositories
         }
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync()
         {
-            return await GetAllAsync();
+            return await  _dbSet.Include("AuthorInPrintingEditions.Author")
+                                .ToListAsync();
         }
 
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize)
         {
-            return await _dbSet.Skip(skip).Take(pageSize)
-                .Include(pe => pe.AuthorInPrintingEditions)
-                .ThenInclude(aipe => aipe.Author)
-                .ToListAsync();
+            return await _dbSet.Include("AuthorInPrintingEditions.Author")
+                               .Skip(skip)
+                               .Take(pageSize)
+                               .ToListAsync();
         }
 
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize, PrintingEditionFilter filter)
         {
-            return await _dbSet.Include(pe => pe.AuthorInPrintingEditions)
-                    .ThenInclude(aipe => aipe.Author).Where(pe =>
+            return await _dbSet.Include("AuthorInPrintingEditions.Author")
+                     .Where(pe =>
                      pe.Price >= filter.MinPrice
-                     && pe.Price <= filter.MaxPrice && pe.Type == filter.Type)
-                .Skip(skip)
-                .Take(pageSize) 
-                .ToListAsync();
+                     && pe.Price <= filter.MaxPrice)
+                    .Skip(skip)
+                    .Take(pageSize) 
+                    .ToListAsync();
         }
 
         public async Task<PrintingEdition> GetEditionByIdAsync(string id)
         {
             int curId = int.Parse(id);
-            return await GetByIdAsync(curId);
+
+            return await _dbSet.AsNoTracking().Include("AuthorInPrintingEditions.Author").SingleOrDefaultAsync(e => e.Id == curId);
         }
 
         public async Task<PrintingEdition> CreateEditionAsync(PrintingEdition entity)
         {
-            return await CreateAsync(entity);
+            await _context.PrintingEditions.AddAsync(entity);
+            await _context.SaveChangesAsync();
+
+            return entity;
         }
 
         public async Task<PrintingEdition> RemoveEditionAsync(PrintingEdition entity)
@@ -73,9 +78,14 @@ namespace Store.DataAccess.Repositories
             return await UpdateAsync(entity);
         }
 
-        public async Task<PrintingEdition> GetEdititonByTitle(string title)
+        public async Task<PrintingEdition> GetEditionByTitle(string title)
         {
-            return await _dbSet.FirstOrDefaultAsync(e => e.Title == title);
+            return await _dbSet.FirstOrDefaultAsync(e => e.Title.Equals(title));
+        }
+
+        public async Task<PrintingEdition> GetEditionByTitle(string title, int peId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(e => e.Title.Equals(title) && e.Id != peId);
         }
     }
 }

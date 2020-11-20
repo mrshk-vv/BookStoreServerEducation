@@ -6,15 +6,12 @@ namespace Store.Shared.Enums
 {
     public partial class Enums
     {
-        public enum Currency
+        public enum Status
         {
             None = 0,
-            USD = 1,
-            EUR = 2,
-            GRP = 3,
-            CHF = 4,
-            JPY = 5,
-            UAH = 6
+            Paid = 1,
+            Unpaid =2
         }
     }
+    
 }

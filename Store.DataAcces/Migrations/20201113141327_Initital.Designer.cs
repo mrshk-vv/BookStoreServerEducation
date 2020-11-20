@@ -10,8 +10,8 @@ using Store.DataAccess.AppContext;
 namespace Store.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20201005114324_Initial")]
-    partial class Initial
+    [Migration("20201113141327_Initital")]
+    partial class Initital
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -200,7 +200,7 @@ namespace Store.DataAccess.Migrations
                         {
                             AuthorId = 1,
                             PrintingEditionId = 1,
-                            Date = new DateTime(2020, 10, 5, 14, 43, 23, 393, DateTimeKind.Local).AddTicks(2710)
+                            Date = new DateTime(2020, 11, 13, 16, 13, 27, 55, DateTimeKind.Local).AddTicks(4733)
                         });
                 });
 
@@ -217,14 +217,12 @@ namespace Store.DataAccess.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsCanceled")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsRemoved")
-                        .HasColumnType("bit");
-
                     b.Property<int>("PaymentId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(24)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
@@ -249,25 +247,20 @@ namespace Store.DataAccess.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Currency")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsRemoved")
-                        .HasColumnType("bit");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(24)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("PrintingEditionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PrintingEditionId1")
+                    b.Property<int>("PrintingEditionId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
-                    b.HasIndex("PrintingEditionId1");
+                    b.HasIndex("PrintingEditionId");
 
                     b.ToTable("OrderItems");
                 });
@@ -278,9 +271,6 @@ namespace Store.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<bool>("IsRemoved")
-                        .HasColumnType("bit");
 
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("uniqueidentifier");
@@ -297,11 +287,16 @@ namespace Store.DataAccess.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Currency")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EditionCurrency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<string>("EditionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(24)");
 
                     b.Property<bool>("IsRemoved")
                         .HasColumnType("bit");
@@ -312,9 +307,6 @@ namespace Store.DataAccess.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.ToTable("PrintingEditions");
@@ -323,12 +315,12 @@ namespace Store.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            Currency = "USD",
                             Description = "This Description",
+                            EditionCurrency = "USD",
+                            EditionType = "Book",
                             IsRemoved = false,
                             Price = 100m,
-                            Title = "The Adventures of Tom Sawyer",
-                            Type = "Book"
+                            Title = "The Adventures of Tom Sawyer"
                         });
                 });
 
@@ -498,7 +490,9 @@ namespace Store.DataAccess.Migrations
 
                     b.HasOne("Store.DataAccess.Entities.PrintingEdition", "PrintingEdition")
                         .WithMany()
-                        .HasForeignKey("PrintingEditionId1");
+                        .HasForeignKey("PrintingEditionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

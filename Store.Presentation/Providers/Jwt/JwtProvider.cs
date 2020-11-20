@@ -53,7 +53,7 @@ namespace Store.Presentation.Providers.Jwt
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var ecryptToken = tokenHandler.ReadToken(accessToken) as JwtSecurityToken;
-            var email = ecryptToken.Claims.Single(e => e.Type == ClaimTypes.Email).Value;
+            var email = ecryptToken.Claims.Single(e => e.Type == "email").Value;
             if (email is null)
             {
                 throw new ServerException(Constants.Errors.USER_NOT_FOUND,Enums.Errors.NotFound);
