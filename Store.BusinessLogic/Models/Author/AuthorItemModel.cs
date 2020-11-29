@@ -4,12 +4,8 @@ using Store.BusinessLogic.Models.PrintingEdition;
 
 namespace Store.BusinessLogic.Models.Author
 {
-    public class AuthorItemModel
+    public class AuthorItemModel: AuthorBaseModel
     {
-        public int Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        public List<PrintingEditionModel> PrintingEditions { get; set; }
-        public bool IsRemoved { get; set; }
+        public List<int> PrintingEditions { get; set; }
     }
 }

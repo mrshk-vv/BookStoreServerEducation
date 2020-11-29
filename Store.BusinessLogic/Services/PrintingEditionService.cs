@@ -6,6 +6,7 @@ using AutoMapper;
 using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Models.Author;
 using Store.BusinessLogic.Models.PrintingEdition;
+using Store.BusinessLogic.Providers;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Interfaces;
 using Store.Shared.Common;
@@ -21,49 +22,41 @@ namespace Store.BusinessLogic.Services
         private readonly IMapper _mapper;
         private readonly IPrintingEditionRepository _editionRepository;
         private readonly IAuthorInPERepository _authorInPeRepository;
-        private readonly IAuthorRepository _authorRepository;
-        public PrintingEditionService(IPrintingEditionRepository editionRepository, IMapper mapper, IAuthorInPERepository authorInPeRepository, IAuthorRepository authorRepository)
+        public PrintingEditionService(IPrintingEditionRepository editionRepository, IMapper mapper, IAuthorInPERepository authorInPeRepository)
         {
             _editionRepository = editionRepository;
             _mapper = mapper;
             _authorInPeRepository = authorInPeRepository;
-            _authorRepository = authorRepository;
         }
 
-        public async Task<PrintingEditionModel> CreateEditionAsync(PrintingEditionModel model)
+        public async Task<PrintingEditionModel> CreateEditionAsync(PrintingEditionItemModel model)
         {
             var printingEdition = await _editionRepository.GetEditionByTitle(model.Title);
 
             if (printingEdition is null)
             {
-                var editionToAdd = _mapper.Map<PrintingEditionModel, PrintingEdition>(model);
+                var editionToAdd = _mapper.Map<PrintingEditionItemModel, PrintingEdition>(model);
                 var editionAdded = await _editionRepository.CreateEditionAsync(editionToAdd);
-                var authors = _mapper.Map<List<AuthorInPrintingEditionModel>, List<AuthorInPrintingEdition>>(model.AuthorInPrintingEditions);
 
-                if (authors.Count == 1)
+                if (model.Authors.Count > 1)
                 {
-                    authors[0].PrintingEditionId = editionAdded.Id;
-                    await _authorInPeRepository.AddAuthorToPE(authors[0]);
-                    authors[0].Author = await _authorRepository.GetAuthorByIdAsync(authors[0].AuthorId.ToString());
+                    var authorInPrintingEditions =
+                        AuthorInPrintingEditionProvider.GetAuthorInPrintingEditionList(model.Authors, editionAdded.Id);
+
+                    await _authorInPeRepository.AddAuthorsToPrintingEditionAsync(authorInPrintingEditions);
                 }
                 else
                 {
-                    for (int i = 0; i < authors.Count; i++)
-                    {
-                        authors[i].PrintingEditionId = editionAdded.Id;
-                    }
+                    var authorInPrintingEdition =
+                        AuthorInPrintingEditionProvider.GetAuthorInPrintingEdition(editionAdded.Id, model.Authors[0]);
 
-                    await _authorInPeRepository.AddAuthorsToPE(authors);
-
-                    for (int i = 0; i < authors.Count; i++)
-                    {
-                        authors[i].Author = await _authorRepository.GetAuthorByIdAsync(authors[i].AuthorId.ToString());
-                    }
+                    await _authorInPeRepository.AddAuthorToPrintingEditionAsync(authorInPrintingEdition);
                 }
 
-                editionAdded.AuthorInPrintingEditions = authors;
+                printingEdition = await _editionRepository.GetEditionByIdAsync(editionAdded.Id.ToString());
+                var printingEditionModel = _mapper.Map<PrintingEdition, PrintingEditionModel>(printingEdition);
 
-                return _mapper.Map<PrintingEdition, PrintingEditionModel>(editionAdded);
+                return printingEditionModel;
             }
 
             throw new ServerException(Constants.Errors.EDITION_ALREADY_EXIST, Enums.Errors.BadRequest);
@@ -122,60 +115,27 @@ namespace Store.BusinessLogic.Services
             return printingEdition;
         }
 
-        public async Task<PrintingEditionModel> UpdateEditionAsync(PrintingEditionModel model)
+        public async Task<PrintingEditionModel> UpdateEditionAsync(PrintingEditionItemModel model)
         {
             var printingEdition = await _editionRepository.GetEditionByTitle(model.Title, model.Id);
 
             if (printingEdition is null)
             {
-                List<AuthorInPrintingEditionModel> authorsInUpdatedEdititon = null;
+                var editionToUpdate = _mapper.Map<PrintingEditionItemModel, PrintingEdition>(model);
+                var editionUpdated = await _editionRepository.UpdateEditionAsync(editionToUpdate);
 
-                printingEdition = await _editionRepository.GetEditionByIdAsync(model.Id.ToString());
+                var authorsInPrintingEdition =
+                    AuthorInPrintingEditionProvider.GetAuthorInPrintingEditionList(model.Authors,
+                        editionUpdated.Id);
 
-                var authors = _mapper.Map<List<AuthorInPrintingEditionModel>, List<AuthorInPrintingEdition>>
-                    (model.AuthorInPrintingEditions);
+                await _authorInPeRepository.UpdateAuthorsInPrintingEditionAsync(authorsInPrintingEdition,
+                    editionUpdated.Id);
 
-                var editionToUpdate = _mapper.Map<PrintingEditionModel, PrintingEdition>(model);
-
-                var printingEditionModel =
-                    _mapper.Map<PrintingEdition, PrintingEditionModel>(
-                        await _editionRepository.UpdateEditionAsync(editionToUpdate));
-
-                if (authors.Equals(printingEdition.AuthorInPrintingEditions))
-                {
-                    authorsInUpdatedEdititon =
-                        _mapper.Map<List<AuthorInPrintingEdition>, List<AuthorInPrintingEditionModel>>
-                            (authors);
-
-                    printingEditionModel.AuthorInPrintingEditions = authorsInUpdatedEdititon;
-
-                    return printingEditionModel;
-                } 
-
-                if (authors.Count == 1)
-                {
-                    authors[0].PrintingEditionId = printingEditionModel.Id;
-
-                    authorsInUpdatedEdititon =
-                        _mapper.Map<List<AuthorInPrintingEdition>, List<AuthorInPrintingEditionModel>>(authors);
-
-                    printingEditionModel.AuthorInPrintingEditions = authorsInUpdatedEdititon;
-
-                    var author =
-                        _mapper.Map<AuthorInPrintingEdition, AuthorInPrintingEditionModel>
-                            (await _authorInPeRepository.UpdateAuthorInPE(authors[0]));
-
-                    printingEditionModel.AuthorInPrintingEditions.Add(author);
-
-                    return printingEditionModel;
-                }
-
-                var authorsInPE = _mapper.Map<List<AuthorInPrintingEdition>, List<AuthorInPrintingEditionModel>>
-                    (await _authorInPeRepository.UpdateAuthorsInPE(authors));
-
-                printingEditionModel.AuthorInPrintingEditions = authorsInPE;
+                printingEdition = await _editionRepository.GetEditionByIdAsync(editionUpdated.Id.ToString());
+                var printingEditionModel = _mapper.Map<PrintingEdition, PrintingEditionModel>(printingEdition);
 
                 return printingEditionModel;
+
             }
 
             throw new ServerException(Constants.Errors.EDITION_ALREADY_EXIST, Enums.Errors.BadRequest);

@@ -27,7 +27,7 @@ namespace Store.Presentation.Controllers
 
         [HttpPost(Constants.Routes.EDITION_CREATE_ROUTE)]
         [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> CreateEdition([FromBody]PrintingEditionModel model)
+        public async Task<IActionResult> CreateEdition([FromBody]PrintingEditionItemModel model)
         {
             if (ModelState.IsValid)
             {
@@ -69,11 +69,10 @@ namespace Store.Presentation.Controllers
 
         [HttpPost(Constants.Routes.EDITION_UPDATE_ROUTE)]
         [Authorize(Roles = "Admin", AuthenticationSchemes = "Bearer")]
-        public async Task<IActionResult> UpdateEdition([FromBody]PrintingEditionModel model)
+        public async Task<IActionResult> UpdateEdition([FromBody]PrintingEditionItemModel model)
         {
             if (ModelState.IsValid)
             {
-                await _editionService.UpdateEditionAsync(model);
                 return Ok(await _editionService.UpdateEditionAsync(model));
             }
 

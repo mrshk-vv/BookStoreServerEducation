@@ -15,9 +15,19 @@ namespace Store.BusinessLogic.Mapping
                 .ForMember(pem => pem.EditionType, opt => opt.MapFrom(pe => pe.EditionType))
                 .ForMember(pem => pem.Price, opt => opt.MapFrom(pe => pe.Price))
                 .ForMember(pem => pem.IsRemoved, opt => opt.MapFrom(pe => pe.IsRemoved))
-                .ForMember(pem => pem.Id, opt => opt.MapFrom(pe => pe.Id));
+                .ForMember(pem => pem.Id, opt => opt.MapFrom(pe => pe.Id))
+                .ForMember(pem => pem.AuthorInPrintingEditions, opt => opt.MapFrom(pe => pe.AuthorInPrintingEditions));
 
             CreateMap<PrintingEditionModel, PrintingEdition>()
+                .ForMember(pe => pe.Title, opt => opt.MapFrom(pem => pem.Title))
+                .ForMember(pe => pe.Description, opt => opt.MapFrom(pem => pem.Description))
+                .ForMember(pe => pe.EditionCurrency, opt => opt.MapFrom(pem => pem.EditionCurrency))
+                .ForMember(pe => pe.EditionType, opt => opt.MapFrom(pem => pem.EditionType))
+                .ForMember(pe => pe.Price, opt => opt.MapFrom(pem => pem.Price))
+                .ForMember(pe => pe.IsRemoved, opt => opt.MapFrom(pem => pem.IsRemoved))
+                .ForMember(pe => pe.Id, opt => opt.MapFrom(pem => pem.Id));
+
+            CreateMap<PrintingEditionItemModel, PrintingEdition>()
                 .ForMember(pe => pe.Title, opt => opt.MapFrom(pem => pem.Title))
                 .ForMember(pe => pe.Description, opt => opt.MapFrom(pem => pem.Description))
                 .ForMember(pe => pe.EditionCurrency, opt => opt.MapFrom(pem => pem.EditionCurrency))

@@ -44,6 +44,11 @@ namespace Store.BusinessLogic.Mapping
                 .ForMember(aipe => aipe.PrintingEdition, opt => opt.MapFrom(aipem => aipem.PrintingEdition))
                 .ForMember(aipe => aipe.Date, opt => opt.MapFrom(aipem => aipem.Date));
 
+            CreateMap<AuthorModel, AuthorInPrintingEdition>()
+                .ForMember(aipe => aipe.AuthorId, opt => opt.MapFrom(a => a.Id));
+
+            CreateMap<AuthorInPrintingEdition, AuthorModel>()
+                .ForMember(aipe => aipe.Id, opt => opt.MapFrom(a => a.AuthorId));
         }
     }
 }

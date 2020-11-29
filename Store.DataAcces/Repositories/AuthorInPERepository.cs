@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -15,51 +16,43 @@ namespace Store.DataAccess.Repositories
         {
         }
 
-        public async Task<IEnumerable<AuthorInPrintingEdition>> GetAuthorsInPE(string id)
-        {
-            var curId = int.Parse(id);
-
-            return await _dbSet.Where(a => a.AuthorId == curId).ToListAsync();
-        }
-
-        public async Task<IEnumerable<AuthorInPrintingEdition>> GetAuthorsInPEs(int skip, int pageSize)
-        {
-            return await _dbSet.Skip(skip).Take(pageSize).ToListAsync();
-        }
-
-        public async Task<AuthorInPrintingEdition> AddAuthorToPE(AuthorInPrintingEdition model)
+        public async Task AddAuthorToPrintingEditionAsync(AuthorInPrintingEdition model)
         {
             await CreateAsync(model);
-
-            return model;
         }
 
-        public async Task AddAuthorsToPE(IEnumerable<AuthorInPrintingEdition> authors)
+        public async Task AddAuthorsToPrintingEditionAsync(IEnumerable<AuthorInPrintingEdition> list)
         {
-            await AddRangeAsync(authors);
+            await _dbSet.AddRangeAsync(list);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task RemoveAuthorFromPE(AuthorInPrintingEdition model)
+        public async Task UpdateAuthorsInPrintingEditionAsync(IEnumerable<AuthorInPrintingEdition> list, int printingEditionId)
         {
-            await DeleteAsync(model);
-        }
-        public async Task RemoveAuthorsFromPE(IEnumerable<AuthorInPrintingEdition> list)
-        {
-            await DeleteRangeAsync(list);
+            _dbSet.RemoveRange(_dbSet.Where(ap => ap.PrintingEditionId == printingEditionId));
+            await AddAuthorsToPrintingEditionAsync(list);
         }
 
-        public async Task<AuthorInPrintingEdition> UpdateAuthorInPE(AuthorInPrintingEdition model)
+        public async Task UpdateInPrintingEditionByAuthorsAsync(IEnumerable<AuthorInPrintingEdition> list, int authorId)
+        {
+            _dbSet.RemoveRange(_dbSet.Where(ap => ap.AuthorId == authorId));
+            if (list is null)
+            {
+                await _context.SaveChangesAsync();
+                return;
+            }
+            await AddAuthorsToPrintingEditionAsync(list);
+        }
+
+        public async Task UpdateAuthorInPrintingEditionAsync(AuthorInPrintingEdition model)
         {
             await UpdateAsync(model);
-
-            return model;
         }
 
-        public async Task<List<AuthorInPrintingEdition>> UpdateAuthorsInPE(List<AuthorInPrintingEdition> list)
+        public async Task RemoveInPrintingEditionByAuthorsAsync(int authorId)
         {
-            await UpdateRangeAsync(list);
-
-            return list;
+            _dbSet.RemoveRange(_dbSet.Where(ap => ap.AuthorId == authorId));
+            await _context.SaveChangesAsync();
         }
     }
 }

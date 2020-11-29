@@ -48,15 +48,12 @@ namespace Store.DataAccess.Repositories
         {
             int curId = int.Parse(id);
 
-            return await _dbSet.AsNoTracking().Include("AuthorInPrintingEditions.Author").SingleOrDefaultAsync(e => e.Id == curId);
+            return await _dbSet.Include("AuthorInPrintingEditions.Author").SingleOrDefaultAsync(e => e.Id == curId);
         }
 
         public async Task<PrintingEdition> CreateEditionAsync(PrintingEdition entity)
         {
-            await _context.PrintingEditions.AddAsync(entity);
-            await _context.SaveChangesAsync();
-
-            return entity;
+            return await CreateAsync(entity);
         }
 
         public async Task<PrintingEdition> RemoveEditionAsync(PrintingEdition entity)
@@ -85,7 +82,7 @@ namespace Store.DataAccess.Repositories
 
         public async Task<PrintingEdition> GetEditionByTitle(string title, int peId)
         {
-            return await _dbSet.FirstOrDefaultAsync(e => e.Title.Equals(title) && e.Id != peId);
+            return await _dbSet.Include("AuthorInPrintingEditions.Author").FirstOrDefaultAsync(e => e.Title.Equals(title) && e.Id != peId);
         }
     }
 }

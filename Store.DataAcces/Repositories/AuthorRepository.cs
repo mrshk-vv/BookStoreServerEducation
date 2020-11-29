@@ -41,13 +41,19 @@ namespace Store.DataAccess.Repositories
         public async Task<Author> GetAuthorByIdAsync(string id)
         {
             var curId = int.Parse(id);
-            return await GetByIdAsync(curId);
+            return await _dbSet.Include("AuthorInPrintingEditions.PrintingEdition")
+                .SingleOrDefaultAsync(a => a.Id == curId);
         }
 
 
         public async Task<Author> GetAuthorByNameAsync(string name)
         {
             return await _dbSet.FirstOrDefaultAsync(a => a.Name.Equals(name));
+        }
+
+        public async Task<Author> GetAuthorByNameAsync(string name, int authorId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(a => a.Name == name && a.Id != authorId);
         }
 
         public async Task<Author> CreateAuthorAsync(Author entity)

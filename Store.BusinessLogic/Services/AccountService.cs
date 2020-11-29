@@ -131,19 +131,19 @@ namespace Store.BusinessLogic.Services
             User user = await _userRepository.GetUserByEmailAsync(userModel.Email);
             if (user is null)
             {
-                throw new ServerException(Constants.Errors.USER_NOT_FOUND, Enums.Errors.Unauthorized);
+                throw new Exception("User not found",new ServerException(Constants.Errors.USER_NOT_FOUND, Enums.Errors.NotFound));
             }
 
             if (user.IsBlocked)
             {
-                throw new ServerException(Constants.Errors.USER_IS_BLOCKED, Enums.Errors.Unauthorized);
+                throw new Exception("User is blocked", new ServerException(Constants.Errors.USER_IS_BLOCKED, Enums.Errors.Unauthorized));
             }
 
             var result =
                 await _signInManager.PasswordSignInAsync(user, userModel.Password, userModel.IsRemember, false);
             if (!result.Succeeded)
             {
-                throw new ServerException(Constants.Errors.PASSWORD_NOT_MATCH, Enums.Errors.Unauthorized);
+                throw new Exception("Invalid email or password");
             }
         }
 

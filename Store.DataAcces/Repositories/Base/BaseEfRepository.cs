@@ -39,21 +39,9 @@ namespace Store.DataAccess.Repositories.Base
             return entity;
         }
 
-        public async Task AddRangeAsync(IEnumerable<T> entities)
-        {
-            await _dbSet.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteRangeAsync(IEnumerable<T> entities)
-        {
-            _dbSet.RemoveRange(entities);
             await _context.SaveChangesAsync();
         }
 
@@ -63,12 +51,6 @@ namespace Store.DataAccess.Repositories.Base
             await _context.SaveChangesAsync();
 
             return entity;
-        }
-
-        public async Task UpdateRangeAsync(IEnumerable<T> entities)
-        {
-            _dbSet.UpdateRange(entities);
-            await _context.SaveChangesAsync();
         }
     }
 }

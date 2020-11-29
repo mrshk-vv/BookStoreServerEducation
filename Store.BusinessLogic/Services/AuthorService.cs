@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Models.Author;
+using Store.BusinessLogic.Providers;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Interfaces;
 using Store.Shared.Common;
@@ -19,11 +21,13 @@ namespace Store.BusinessLogic.Services
     {
         private readonly IMapper _mapper;
         private readonly IAuthorRepository _authorRepository;
+        private readonly IAuthorInPERepository _authorInPeRepository;
 
-        public AuthorService(IMapper mapper, IAuthorRepository authorRepository)
+        public AuthorService(IMapper mapper, IAuthorRepository authorRepository, IAuthorInPERepository authorInPeRepository)
         {
             _mapper = mapper;
             _authorRepository = authorRepository;
+            _authorInPeRepository = authorInPeRepository;
         }
 
         public async Task<AuthorModel> CreateAuthorAsync(AuthorItemModel model)
@@ -76,19 +80,31 @@ namespace Store.BusinessLogic.Services
 
         public async Task<AuthorModel> UpdateAuthorAsync(AuthorItemModel model)
         {
-            var author = await _authorRepository.GetAuthorByNameAsync(model.Name);
+            var author = await _authorRepository.GetAuthorByNameAsync(model.Name, model.Id);
 
-            if (author != null)
+            if (author is null)
             {
-                throw new ServerException(Constants.Errors.AUTHOR_ALREADY_EXIST,Enums.Errors.BadRequest);
+                var authorToUpdate = _mapper.Map<AuthorItemModel, Author>(model);
+                var authorUpdated = await _authorRepository.UpdateAuthorAsync(authorToUpdate);
+
+                if (model.PrintingEditions.Count == 0)
+                {
+                    await _authorInPeRepository.RemoveInPrintingEditionByAuthorsAsync(authorUpdated.Id);
+                }
+
+                var authorInPrintingEdition =
+                    AuthorInPrintingEditionProvider.GetAuthorInPrintingEditionList(authorUpdated.Id,
+                        model.PrintingEditions);
+                await _authorInPeRepository.UpdateInPrintingEditionByAuthorsAsync(authorInPrintingEdition,
+                    authorUpdated.Id);
+
+                author = await _authorRepository.GetAuthorByIdAsync(model.Id.ToString());
+                var authorModel = _mapper.Map<Author, AuthorModel>(author);
+
+                return authorModel;
             }
 
-            var authorToUpdate = _mapper.Map<AuthorItemModel, Author>(model);
-
-            var authorUpdated = 
-                _mapper.Map<Author, AuthorModel>(await _authorRepository.UpdateAuthorAsync(authorToUpdate));
-
-            return authorUpdated;
+            throw new ServerException(Constants.Errors.AUTHOR_ALREADY_EXIST, Enums.Errors.BadRequest);
         }
 
         public async Task<AuthorModel> RemoveAuthorAsync(string id)
