@@ -43,7 +43,7 @@ namespace Store.Presentation.Controllers
         [HttpPost(Constants.Routes.SIGN_UP_ROUTE)]
         public async Task<IActionResult> SingUp([FromBody] UserSingUpModel model)
         {
-            await _accountService.SignUpAsync(model);
+            await _accountService.CreateUser(model);
 
             string confToken = await _accountService.GenerateConfirmTokenAsync(model);
 

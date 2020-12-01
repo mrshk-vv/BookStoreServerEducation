@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Store.DataAccess.AppContext;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Base;
 using Store.DataAccess.Repositories.Interfaces;
@@ -12,11 +13,11 @@ using Store.Shared.Filters;
 
 namespace Store.DataAccess.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : BaseEfRepository<User>,IUserRepository
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UserRepository(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public UserRepository(ApplicationContext context,UserManager<User> userManager, RoleManager<IdentityRole> roleManager) : base(context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -35,8 +36,8 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter)
         {
-            var firstName = GetUserFirstName(filter.UserName);
-            var lastName = GetUserLastName(filter.UserName);
+            var firstName = GetUserFirstName(filter.Email);
+            var lastName = GetUserLastName(filter.Email);
 
             var list = await _userManager.Users
                 .Where(u => u.FirstName == firstName && u.LastName == lastName)
@@ -44,6 +45,19 @@ namespace Store.DataAccess.Repositories
 
             return list;
 
+        }
+
+        public async Task DeleteUserAsync(User entity)
+        {
+            await _userManager.DeleteAsync(entity);
+        }
+
+        public async Task<User> ChangeUserBlockStatusAsync(User user)
+        {
+            user.IsBlocked = !user.IsBlocked;
+            await _userManager.UpdateAsync(user);
+
+            return user;
         }
 
         private string GetUserFirstName(string fullName)
@@ -79,48 +93,41 @@ namespace Store.DataAccess.Repositories
         #endregion
 
 
-        public async Task<User> GetUserAsync(User entity)
-        {
-            return await _userManager.FindByEmailAsync(entity.Email);
-        }
+        #region User Managment
 
-        public async Task<User> GetUserAsync(string id)
-        {
-            return await _userManager.FindByIdAsync(id);
-        }
-
-        public async Task<User> CreateUserAsync(User entity)
-        {
-            await _userManager.CreateAsync(entity);
-
-            return entity;
-        }
-
-        public async Task<User> RemoveUserAsync(User entity)
-        {
-            await _userManager.DeleteAsync(entity);
-
-            return entity;
-        }
-
-        public async Task<User> UpdateUserAsync(User entity)
-        {
-            await _userManager.UpdateAsync(entity);
-
-            return entity;
-        }
-
-        public async Task<bool> CreateAsync(User entity, string password)
+        public async Task<User> CreateUserAsync(User entity, string password)
         {
             var res = await _userManager.CreateAsync(entity, password);
-            if (!res.Succeeded)
+            if (res.Succeeded)
             {
                 await _userManager.AddToRoleAsync(entity, Enums.Roles.Client.ToString());
-                return false;
+                return entity;
             }
 
-            return res.Succeeded;
+            return entity;
         }
+
+        public async Task<User> UpdateUserAsync(User entity, string password)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(user => user.Id == entity.Id);
+
+            user.FirstName = entity.FirstName;
+            user.LastName = entity.LastName;
+            user.Email = entity.Email;
+            user.NormalizedEmail = entity.Email.ToUpper();
+            user.UserName = entity.Email;
+            user.NormalizedUserName = entity.Email.ToUpper();
+            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, password);
+
+            _context.Users.Update(user);
+
+            await _context.SaveChangesAsync();
+
+            return entity;
+        }
+
+        #endregion
+
 
         public async Task<User> GetUserByIdAsync(string id)
         {
@@ -130,14 +137,6 @@ namespace Store.DataAccess.Repositories
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
-        }
-
-        public async Task<User> BlockUserAsync(User user)
-        {
-            user.IsBlocked = true;
-            await _userManager.UpdateAsync(user);
-
-            return user;
         }
 
         #region Authorization

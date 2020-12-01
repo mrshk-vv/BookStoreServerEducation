@@ -8,14 +8,15 @@ namespace Store.DataAccess.Repositories.Interfaces
 {
     public interface IUserRepository
     {
-        public Task<bool> CreateAsync(User entity, string password);
+        public Task<User> CreateUserAsync(User entity, string password);
         public Task<User> GetUserByIdAsync(string id);
+        public Task<User> GetUserByEmailAsync(string email);
         public Task<IEnumerable<User>> GetAllUsersAsync();
         public Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize);
         public Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter);
-        public Task<User> GetUserByEmailAsync(string email);
-        public Task<User> UpdateUserAsync(User user);
-        public Task<User> BlockUserAsync(User user);
+        public Task<User> UpdateUserAsync(User user, string password);
+        public Task DeleteUserAsync(User user);
+        public Task<User> ChangeUserBlockStatusAsync(User user);
 
 
         public Task<IList<string>> GetUserRolesAsync(User user);

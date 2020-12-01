@@ -12,17 +12,17 @@ namespace Store.BusinessLogic.Interfaces
 {
     public interface IAccountService
     {
-        #region Administration
+        #region User Managment
         public Task<IEnumerable<UserModel>> GetUsersAsync();
         public Task<IEnumerable<UserModel>> GetUsersAsync(PaginationQuery paginationQuery,UsersFilter filter);
         public Task<UserModel> GetUserByIdAsync(string id);
-        public Task<UserModel> UpdateUserAsync(UserModel model);
+        public Task<UserModel> CreateUser(UserSingUpModel userModel);
+        public Task<UserModel> UpdateUserAsync(UserSingUpModel model);
         public Task DeleteUserAsync(string id);
-        public Task<UserModel> BlockUserAsync(string id);
+        public Task<UserModel> ChangeUserBlockStatusAsync(string id);
         #endregion
 
         #region Authentiation and authorization
-        public Task SignUpAsync(UserSingUpModel userModel);
         public Task<string> GenerateConfirmTokenAsync(UserSingUpModel user);
         public Task ConfirmEmailAsync(string email, string token);
         public Task SignInAsync(UserSignInModel userModel);

@@ -16,9 +16,12 @@
 
             //user controller
             public const string USER_DELETE_ROUTE = "deleteUser";
-            public const string USER_BLOCK_ROUTE = "blockUser";
+            public const string USER_BLOCK_ROUTE = "changeUserBlockStatus";
             public const string USER_GET_ROUTE = "getUser";
+            public const string USER_CREATE_ROUTE = "createUser";
+            public const string USER_UPDATE_ROUTE = "updateUser";
             public const string USERS_GET_ALL_ROUTE = "getUsers";
+
 
             //author controller
             public const string AUTHOR_CREATE_ROUTE = "createAuthor";

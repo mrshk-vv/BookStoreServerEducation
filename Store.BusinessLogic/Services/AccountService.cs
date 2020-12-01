@@ -21,7 +21,6 @@ namespace Store.BusinessLogic.Services
     public class AccountService : IAccountService
     {
         private readonly SignInManager<User> _signInManager;
-        private readonly UserManager<User> _userManager;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
 
@@ -31,10 +30,9 @@ namespace Store.BusinessLogic.Services
             _userRepository = userRepository;
             _signInManager = signInManager;
             _mapper = mapper;
-            _userManager = userManager;
         }
 
-        #region Administration
+        #region User Managment
         public async Task<IEnumerable<UserModel>> GetUsersAsync()
         {
             return _mapper.Map<IEnumerable<UserModel>>(await _userRepository.GetAllUsersAsync());
@@ -44,7 +42,7 @@ namespace Store.BusinessLogic.Services
         {
             var skip = (paginationQuery.PageNumber - 1) * paginationQuery.PageSize;
 
-            if (filter.Status == false && filter.UserName is null)
+            if (filter.Status == false && filter.Email is null)
             {
                 return _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
                     await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize));
@@ -70,23 +68,41 @@ namespace Store.BusinessLogic.Services
 
             return userModel;
         }
-
-        public async Task<UserModel> UpdateUserAsync(UserModel model)
+        public async Task<UserModel> CreateUser(UserSingUpModel userModel)
         {
-            var user = _mapper.Map<UserModel, User>(model);
-            return _mapper.Map<User, UserModel>(await _userRepository.UpdateUserAsync(user));
+            var user = _mapper.Map<UserSingUpModel, User>(userModel);
+            user = await _userRepository.CreateUserAsync(user, userModel.Password);
+            if (user is null)
+            {
+                throw new ServerException(Constants.Errors.CREATE_USER_FAILED, Enums.Errors.BadRequest);
+            }
+
+            return _mapper.Map<User, UserModel>(user);
+        }
+
+        public async Task<UserModel> UpdateUserAsync(UserSingUpModel model)
+        {
+            var user = await _userRepository.UpdateUserAsync(
+                _mapper.Map<UserSingUpModel, User>(model),
+                model.Password);
+
+            return _mapper.Map<User, UserModel>(user);
         }
 
         public async Task DeleteUserAsync(string id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            await _userManager.DeleteAsync(user);
+            if (user is null)
+            {
+                throw new ServerException(Constants.Errors.USER_NOT_FOUND, Enums.Errors.BadRequest);
+            }
+            await _userRepository.DeleteUserAsync(user);
         }
 
-        public async Task<UserModel> BlockUserAsync(string id)
+        public async Task<UserModel> ChangeUserBlockStatusAsync(string id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
-            return _mapper.Map<User,UserModel>(await _userRepository.BlockUserAsync(user));
+            return _mapper.Map<User,UserModel>(await _userRepository.ChangeUserBlockStatusAsync(user));
         }
         #endregion
 
@@ -113,17 +129,6 @@ namespace Store.BusinessLogic.Services
 
             await _userRepository.ConfirmEmailAsync(user, token);
 
-        }
-
-        public async Task SignUpAsync(UserSingUpModel userModel)
-        {
-            var user = _mapper.Map<UserSingUpModel, User>(userModel);
-            if (!await _userRepository.CreateAsync(user, userModel.Password))
-            {
-                throw new ServerException(Constants.Errors.CREATE_USER_FAILED, Enums.Errors.BadRequest);
-            }
-
-            await _userManager.AddToRoleAsync(user, Enums.Roles.Client.ToString());
         }
 
         public async Task SignInAsync(UserSignInModel userModel)
@@ -182,6 +187,7 @@ namespace Store.BusinessLogic.Services
 
             var claims = new List<Claim>()
             {
+                new Claim("id", user.Id),
                 new Claim("email", user.Email),
                 new Claim("firstName", user.FirstName),
                 new Claim("lastName", user.LastName)
