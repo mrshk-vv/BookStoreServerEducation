@@ -71,12 +71,12 @@ namespace Store.BusinessLogic.Services
             return printingEditions;
         }
 
-        public async Task<IEnumerable<PrintingEditionModel>> GetAllEditionsAsync(PaginationQuery paginationFilter = null,
-                                                                                 PrintingEditionFilter filter = null)
+        public async Task<IEnumerable<PrintingEditionModel>> GetAllEditionsAsync(PaginationQuery paginationFilter,
+            PrintingEditionFilter filter = null)
         {
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
 
-            if (filter.MaxPrice == Decimal.MaxValue && filter.MinPrice == 0 && filter.Type == null)
+            if (filter is null)
             {
                 var printingEditionsNoFilter =
                     _mapper.Map<IEnumerable<PrintingEdition>, IEnumerable<PrintingEditionModel>>(
@@ -89,19 +89,6 @@ namespace Store.BusinessLogic.Services
                 await _editionRepository.GetEditionsAsync(skip,
                     paginationFilter.PageSize,
                     filter));
- 
-
-            switch (filter.PriceSorting)
-            {
-                case "ASC":
-                    printingEditionsFilter = printingEditionsFilter.OrderBy(pe => pe.Price);
-                    break;
-                case "DESC":
-                    printingEditionsFilter = printingEditionsFilter.OrderByDescending(pe => pe.Price);
-                    break;
-                default:
-                    break;
-            }
 
             return printingEditionsFilter;
 

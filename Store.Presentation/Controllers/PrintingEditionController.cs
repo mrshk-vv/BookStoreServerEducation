@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,22 +51,25 @@ namespace Store.Presentation.Controllers
         }
 
         [HttpGet(Constants.Routes.EDITIONS_GET_ALL_ROUTE)]
-        public async Task<IActionResult> GetEditions([FromQuery]PaginationQuery paginationQuery = null, [FromQuery]PrintingEditionFilter filter = null){
+        public async Task<IActionResult> GetEditions([FromQuery] PaginationQuery paginationQuery, [FromQuery] PrintingEditionFilter filter)
+        {
             var editionsResponse = await _editionService.GetAllEditionsAsync();
-            
+
             if (paginationQuery is null || paginationQuery.PageSize < 1 || paginationQuery.PageNumber < 1)
             {
                 return Ok(new PagedResponse<PrintingEditionModel>(editionsResponse));
             }
-            
+
             editionsResponse = await _editionService.GetAllEditionsAsync(paginationQuery, filter);
-            
+
             var paginationResponse = PaginationProvider.CreatePaginatedResponse(_uriService,
                 $"api/{ControllerContext.ActionDescriptor.ControllerName}/{Constants.Routes.EDITIONS_GET_ALL_ROUTE}",
-                paginationQuery,filter,
+                paginationQuery, filter,
                 editionsResponse);
-            
+
+
             return Ok(paginationResponse);
+
         }
 
         [HttpPost(Constants.Routes.EDITION_UPDATE_ROUTE)]

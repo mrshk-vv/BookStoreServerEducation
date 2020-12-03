@@ -35,20 +35,36 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<PrintingEdition>> GetEditionsAsync(int skip, int pageSize, PrintingEditionFilter filter)
         {
-            return await _dbSet.Include("AuthorInPrintingEditions.Author")
-                     .Where(pe =>
-                     pe.Price >= filter.MinPrice
-                     && pe.Price <= filter.MaxPrice)
-                    .Skip(skip)
-                    .Take(pageSize) 
-                    .ToListAsync();
-        }
+            var printingEditions = _dbSet.Include("AuthorInPrintingEditions.Author");
 
+            if (!string.IsNullOrWhiteSpace(filter.SearchString))
+            {
+                printingEditions = printingEditions.Where(pe => pe.Title.ToLower().Contains(filter.SearchString.ToLower()) ||
+                                             pe.Description.ToLower().Contains(filter.SearchString.ToLower()));
+            }
+
+            if (filter.Types != null)
+            {
+                printingEditions = printingEditions.Where(pe => filter.Types.Contains(pe.EditionType));
+            }
+
+            if (filter.MaxPrice > 0)
+            {
+                printingEditions =
+                    printingEditions.Where(pe => pe.Price >= filter.MinPrice && pe.Price <= filter.MaxPrice);
+            }
+
+            printingEditions = printingEditions.Skip(skip).Take(pageSize);
+
+            return await printingEditions.ToListAsync();
+        }
+        
         public async Task<PrintingEdition> GetEditionByIdAsync(string id)
         {
             int curId = int.Parse(id);
 
-            return await _dbSet.Include("AuthorInPrintingEditions.Author").SingleOrDefaultAsync(e => e.Id == curId);
+            return await _dbSet.Include("AuthorInPrintingEditions.Author")
+                .SingleOrDefaultAsync(e => e.Id == curId);
         }
 
         public async Task<PrintingEdition> CreateEditionAsync(PrintingEdition entity)
