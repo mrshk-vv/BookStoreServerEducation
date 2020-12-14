@@ -42,7 +42,7 @@ namespace Store.BusinessLogic.Services
         {
             var skip = (paginationQuery.PageNumber - 1) * paginationQuery.PageSize;
 
-            if (filter.Status == false && filter.Email is null)
+            if (filter is null)
             {
                 return _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
                     await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize));
@@ -50,13 +50,6 @@ namespace Store.BusinessLogic.Services
 
             var userList = _mapper.Map<IEnumerable<User>, IEnumerable<UserModel>>(
                 await _userRepository.GetAllUsersAsync(skip, paginationQuery.PageSize,filter));
-
-            if (filter.Status)
-            {
-                userList = userList.OrderBy(u => u.IsBlocked);
-            }
-
-            userList = userList.OrderByDescending(u => u.IsBlocked);
 
             return userList;
         }
@@ -136,19 +129,19 @@ namespace Store.BusinessLogic.Services
             User user = await _userRepository.GetUserByEmailAsync(userModel.Email);
             if (user is null)
             {
-                throw new Exception("User not found",new ServerException(Constants.Errors.USER_NOT_FOUND, Enums.Errors.NotFound));
+                throw new ServerException(Constants.Errors.USER_NOT_FOUND, Enums.Errors.NotFound);
             }
 
             if (user.IsBlocked)
             {
-                throw new Exception("User is blocked", new ServerException(Constants.Errors.USER_IS_BLOCKED, Enums.Errors.Unauthorized));
+                throw new ServerException(Constants.Errors.USER_IS_BLOCKED, Enums.Errors.Unauthorized);
             }
 
             var result =
                 await _signInManager.PasswordSignInAsync(user, userModel.Password, userModel.IsRemember, false);
             if (!result.Succeeded)
             {
-                throw new Exception("Invalid email or password");
+                throw new ServerException(Constants.Errors.INVALID_CREDENTIALS, Enums.Errors.Unauthorized);
             }
         }
 

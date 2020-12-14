@@ -7,15 +7,15 @@ namespace Store.DataAccess.Repositories.Interfaces
 {
     public interface IOrderRepository
     {
-        public Task<IEnumerable<Order>> GetOrders();
-        public Task<IEnumerable<Order>> GetOrders(int skip, int pageSize);
-        public Task<IEnumerable<Order>> GetOrders(int skip, int pageSize,OrderFilter filter);
-        public Task<IEnumerable<Order>> GetUserOrdersById(string id);
-        public Task<Order> GetOrderById(string id);
-
-        public Task<Order> CreateOrderAsync(Order model);
-        public Task<Order> UpdateOrderAsync(Order model);
-        public Task RemoveOrderAsync(string id);
+        public Task<IEnumerable<Order>> GetOrdersAsync();
+        public Task<IEnumerable<Order>> GetOrdersAsync(int skip, int pageSize);
+        public Task<IEnumerable<Order>> GetOrdersAsync(int skip, int pageSize,OrderFilter filter);
+        public Task<IEnumerable<Order>> GetUserOrders(string id);
+        public Task<Order> GetOrderById(int id);
+        public Task<Order> CreateOrderAsync(Order model, Payment payment);
+        public Task<Order> UpdateOrder(Order order);
+        public Task AddItemsToOrder(List<OrderItem> items);
+        public Task RemoveOrderAsync(int id);
 
 
 

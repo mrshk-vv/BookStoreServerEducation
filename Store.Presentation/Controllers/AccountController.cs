@@ -9,6 +9,8 @@ using Store.BusinessLogic.Models.Users;
 using Store.BusinessLogic.Services;
 using Store.Presentation.Providers.Jwt;
 using Store.Shared.Constants;
+using Store.Shared.Common;
+using Store.Shared.Enums;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,10 +36,30 @@ namespace Store.Presentation.Controllers
         [HttpPost(Constants.Routes.SIGN_IN_ROUTE)]
         public async Task<IActionResult> SingIn([FromBody]UserSignInModel model)
         {
-            await _accountService.SignInAsync(model);
-            TokenResponseModel token = await _jwtProvider.GetTokensAsync(model.Email);
+            try
+            {
+                await _accountService.SignInAsync(model);
+                TokenResponseModel token = await _jwtProvider.GetTokensAsync(model.Email);
 
-            return Ok(token);
+                return Ok(token);
+            }
+            catch(ServerException ex)
+            {
+                switch (ex.ErrorCode)
+                {
+                    case Enums.Errors.Unauthorized:
+                        return Unauthorized(ex.Description);
+                        break;
+                    case Enums.Errors.NotFound:
+                        return NotFound(ex.Description);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return Ok();
+
         }
 
         [HttpPost(Constants.Routes.SIGN_UP_ROUTE)]

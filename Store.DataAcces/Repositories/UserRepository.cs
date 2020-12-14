@@ -36,14 +36,24 @@ namespace Store.DataAccess.Repositories
 
         public async Task<IEnumerable<User>> GetAllUsersAsync(int skip, int pageSize, UsersFilter filter)
         {
-            var firstName = GetUserFirstName(filter.Email);
-            var lastName = GetUserLastName(filter.Email);
+            var firstName = GetUserFirstName(filter.Name);
+            var lastName = GetUserLastName(filter.Name);
 
-            var list = await _userManager.Users
-                .Where(u => u.FirstName == firstName && u.LastName == lastName)
-                .Skip(skip).Take(pageSize).ToListAsync();
+            var userList = _userManager.Users;
 
-            return list;
+            if (filter.Name != null)
+            {
+                userList = userList.Where(u => u.FirstName == firstName || u.LastName == lastName);
+            }
+
+            if (filter.Status != null)
+            {
+                userList = userList.Where(u => u.IsBlocked == filter.Status);
+            }
+
+            userList = userList.Skip(skip).Take(pageSize);
+
+            return await userList.ToListAsync();
 
         }
 

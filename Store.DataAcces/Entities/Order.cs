@@ -12,8 +12,10 @@ namespace Store.DataAccess.Entities
         public User User { get; set; }
         public DateTime Date { get; set; }
         public int PaymentId { get; set; }
+        public decimal TotalAmount { get; set; }
         public Payment Payment { get; set; }
         [Column(TypeName = "nvarchar(24)")]
         public Enums.Status Status { get; set; }
+        public List<OrderItem> OrderItems { get; set; }
     }
 }

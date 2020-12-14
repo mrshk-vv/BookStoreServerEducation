@@ -2,8 +2,6 @@
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
-using Store.BusinessLogic.Interfaces;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Store.Shared.Common;

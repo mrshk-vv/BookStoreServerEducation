@@ -18,7 +18,6 @@
             public const string USER_DELETE_ROUTE = "deleteUser";
             public const string USER_BLOCK_ROUTE = "changeUserBlockStatus";
             public const string USER_GET_ROUTE = "getUser";
-            public const string USER_CREATE_ROUTE = "createUser";
             public const string USER_UPDATE_ROUTE = "updateUser";
             public const string USERS_GET_ALL_ROUTE = "getUsers";
 
@@ -45,10 +44,10 @@
             public const string ORDER_CREATE_ROUTE = "createOrder";
             public const string ORDER_GET_ROUTE = "getOrder";
             public const string ORDERS_GET_ALL_ROUTE = "getOrders";
+            public const string ORDERS_CLIENT_GET = "getClientOrders";
+            public const string ORDER_PAY = "payOrder";
             public const string ORDER_UPDATE_ROUTE = "updateOrder";
             public const string ORDER_REMOVE_ROUTE = "removeOrder";
-            public const string ADD_ITEM_TO_ORDER = "addItemToOrder";
-
 
         }
     }

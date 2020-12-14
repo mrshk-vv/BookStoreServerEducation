@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Store.Shared.Enums
+﻿namespace Store.Shared.Enums
 {
     public partial class Enums
     {

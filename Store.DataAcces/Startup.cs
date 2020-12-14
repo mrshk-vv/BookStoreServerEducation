@@ -38,13 +38,11 @@ namespace Store.DataAccess
                 .AddDefaultTokenProviders()
                 .AddTokenProvider("StoreServer", typeof(DataProtectorTokenProvider<User>));
 
-            services.AddTransient(typeof(IUserRepository), typeof(UserRepository));
+            services.AddTransient<IUserRepository, UserRepository>();
             services.AddScoped<IAuthorRepository, AuthorRepository>();
             services.AddScoped<IPrintingEditionRepository, PrintingEditionRepository>();
             services.AddScoped<IAuthorInPERepository, AuthorInPERepository>();
-            services.AddTransient(typeof(IOrderRepository), typeof(OrderRepository));
-            services.AddTransient(typeof(IOrderItemRepository), typeof(OrderItemRepository));
-            services.AddTransient(typeof(IPaymentRepository), typeof(PaymentRepository));
+            services.AddTransient<IOrderRepository, OrderRepository>();
 
             await services.BuildServiceProvider().IdentityInitializerAsync();
 

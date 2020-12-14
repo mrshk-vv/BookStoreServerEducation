@@ -16,62 +16,70 @@ namespace Store.DataAccess.Repositories
         {
         }
 
-        public async Task<IEnumerable<Order>> GetOrders()
+        public async Task<IEnumerable<Order>> GetOrdersAsync()
         {
-
-            return await GetAllAsync();
-            //return await _dbSet.Include(o => o.OrderItems)
-            //    .ThenInclude(pe => pe.Order)
-            //    .ToListAsync();
+            return await _dbSet.Include("OrderItems.PrintingEdition")
+                .Include("User")
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetOrders(int skip, int pageSize)
+        public async Task<IEnumerable<Order>> GetOrdersAsync(int skip, int pageSize)
         {
-            return await GetAllAsync();
-            //return await _dbSet
-            //    .Include(o => o.OrderItems)
-            //    .ThenInclude(oi => oi.Order).Skip(skip)
-            //    .Take(pageSize)
-            //    .ToListAsync();
+            return await _dbSet.Include("OrderItems.PrintingEdition")
+                .Include("User")
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetOrders(int skip, int pageSize, OrderFilter filter)
+        public async Task<IEnumerable<Order>> GetOrdersAsync(int skip, int pageSize, OrderFilter filter)
         {
-            return await GetAllAsync();
-            //return await _dbSet
-            //    .Include(o => o.OrderItems)
-            //    .ThenInclude(oi => oi.Order)
-            //    .Where(o => filter.Status.Any(s => s == o.Status.ToString()))
-            //    .Skip(skip)
-            //    .Take(pageSize)
-            //    .ToListAsync();
+            return await _dbSet.Include("OrderItems.PrintingEdition")
+                .Include("User")
+                .Skip(skip)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
-        public async Task<Order> GetOrderById(string id)
+        public async Task<IEnumerable<Order>> GetUserOrders(string id)
         {
-            var curId = int.Parse(id);
-            return await GetByIdAsync(curId);
+            return await _dbSet.Include("OrderItems.PrintingEdition")
+                .Where(o => o.UserId == id)
+                .ToListAsync();
         }
 
-        public async Task<Order> CreateOrderAsync(Order model)
+        public async Task<Order> GetOrderById(int id)
         {
-            return await CreateAsync(model);
+            return await GetByIdAsync(id);
         }
 
-        public async Task<Order> UpdateOrderAsync(Order model)
+        public async Task<Order> CreateOrderAsync(Order model, Payment payment)
         {
-            return await UpdateAsync(model);
+            await _context.Payments.AddAsync(payment);
+            await _context.SaveChangesAsync();
+            model.PaymentId = payment.Id;
+            await _dbSet.AddAsync(model);
+            await _context.SaveChangesAsync();
+
+            return model;
         }
 
-        public async Task RemoveOrderAsync(string id)
+        public async Task<Order> UpdateOrder(Order order)
+        {
+            return await UpdateAsync(order);
+        }
+
+        public async Task AddItemsToOrder(List<OrderItem> items)
+        {
+            await _context.OrderItems.AddRangeAsync(items);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveOrderAsync(int id)
         {
             var order = await GetOrderById(id);
             await DeleteAsync(order);
         }
 
-        public async Task<IEnumerable<Order>> GetUserOrdersById(string id)
-        {
-            return await _dbSet.AsNoTracking().AsQueryable().Where(o => o.UserId == id).ToListAsync();
-        }
     }
 }

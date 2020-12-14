@@ -15,6 +15,7 @@ using Store.BusinessLogic;
 using Store.Presentation.Extentions;
 using Store.Presentation.Providers.Jwt;
 using Store.Shared.Common;
+using Stripe;
 
 namespace Store.Presentation
 {
@@ -109,6 +110,8 @@ namespace Store.Presentation
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            StripeConfiguration.SetApiKey(configuration.GetSection("Stripe")["SecretKey"]);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

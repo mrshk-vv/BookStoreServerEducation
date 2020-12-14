@@ -57,7 +57,7 @@ namespace Store.BusinessLogic.Services
         {
             var skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
 
-            if (filter.Name == null)
+            if (filter.Name is null)
             {
                 var authorsNoFilter = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>
                     (await _authorRepository.GetAuthorsAsync(skip, paginationFilter.PageSize));
@@ -67,7 +67,7 @@ namespace Store.BusinessLogic.Services
             }
 
             var authorsFilter = _mapper.Map<IEnumerable<Author>, IEnumerable<AuthorModel>>
-                (await _authorRepository.GetAuthorsAsync(skip, paginationFilter.PageSize));
+                (await _authorRepository.GetAuthorsAsync(skip, paginationFilter.PageSize, filter));
 
             return authorsFilter;
         }

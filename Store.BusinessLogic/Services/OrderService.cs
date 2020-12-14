@@ -5,14 +5,17 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Store.BusinessLogic.Interfaces;
 using Store.BusinessLogic.Models.Orders;
 using Store.DataAccess.Entities;
 using Store.DataAccess.Repositories.Interfaces;
+using Store.Shared.Common;
 using Store.Shared.Enums;
 using Store.Shared.Filters;
 using Store.Shared.Pagination;
+using Stripe;
+using Order = Store.DataAccess.Entities.Order;
+using OrderItem = Store.DataAccess.Entities.OrderItem;
 
 namespace Store.BusinessLogic.Services
 {
@@ -20,99 +23,136 @@ namespace Store.BusinessLogic.Services
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IPaymentRepository _paymentRepository;
 
         private readonly IHttpContextAccessor _contextAccessor;
-        private readonly string _userEmail;
         private readonly IMapper _mapper;
-        public OrderService(IOrderRepository orderRepository, IMapper mapper, IHttpContextAccessor contextAccessor, IUserRepository userRepository, IPaymentRepository paymentRepository)
+
+        public OrderService(IOrderRepository orderRepository, IMapper mapper, IHttpContextAccessor contextAccessor, IUserRepository userRepository)
         {
             _orderRepository = orderRepository;
             _userRepository = userRepository;
-            _paymentRepository = paymentRepository;
+            _contextAccessor = contextAccessor;
             _mapper = mapper;
-            _userEmail = contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersAsync()
+        public async Task<IEnumerable<OrderModel>> GetOrdersAsync()
         {
-            return await _orderRepository.GetOrders();
+            return _mapper.Map<IEnumerable<Order>, IEnumerable<OrderModel>>(await _orderRepository.GetOrdersAsync());
         }
 
         public async Task<IEnumerable<OrderModel>> GetOrdersAsync(PaginationQuery paginationFilter, OrderFilter filter)
         {
-            throw new System.NotImplementedException();
+            int skip = (paginationFilter.PageNumber - 1) * paginationFilter.PageSize;
+            if (filter is null)
+            {
+                var orderNoFilter =
+                    _mapper.Map<IEnumerable<Order>, IEnumerable<OrderModel>>(
+                        await _orderRepository.GetOrdersAsync(skip, paginationFilter.PageSize));
+
+                return orderNoFilter;
+            }
+
+            var orderFilter =
+                _mapper.Map<IEnumerable<Order>, IEnumerable<OrderModel>>(
+                    await _orderRepository.GetOrdersAsync(skip, paginationFilter.PageSize, filter));
+
+            return orderFilter;
         }
 
-        public async Task<Order> CreateOrderAsync()
+        public async Task PayOrderAsync(OrderModel order, string token)
         {
-            var user = await _userRepository.GetUserByEmailAsync(_userEmail);
+            string userEmail = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 
-            var paymentId = await _paymentRepository.CreatePayment();
+            var paidOrder = _mapper.Map<OrderModel, Order>(order);
+
+            var customer = await new CustomerService()
+                .CreateAsync(new CustomerCreateOptions
+                {
+                    Email = userEmail
+                });
+
+            var charges = new ChargeService();
+
+            var charge = await charges.CreateAsync(new ChargeCreateOptions
+            {
+                Amount = (long) (order.TotalAmount * 100),
+                Currency = "usd",
+                Source = token
+            });
+
+            if (charge.Status == "succeeded")
+            {
+                paidOrder.Status = Enums.Status.Paid;
+                await _orderRepository.UpdateOrder(paidOrder);
+            }
+            else
+            {
+                throw new ServerException("Order payment error", Enums.Errors.InternalServerError);
+            }
+        }
+
+        public async Task<int> CreateOrderAsync(List<OrderItemModel> cart)
+        {
+            string userEmail = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var user = await _userRepository.GetUserByEmailAsync(userEmail);
+
+            decimal totalAmount = 0;
+
+            for (int i = 0; i < cart.Count; i++)
+            {
+                totalAmount += cart[i].Amount * cart[i].PrintingEdition.Price;
+            }
+
+            var payment = new Payment()
+            {
+                TransactionId = Guid.Empty
+            };
 
             Order order = new Order
             {
                 UserId = user.Id,
                 Date = DateTime.Now,
-                PaymentId = paymentId,
+                TotalAmount = totalAmount,
                 Status = Enums.Status.Unpaid
             };
 
-            return await _orderRepository.CreateOrderAsync(order);
+            order = await _orderRepository.CreateOrderAsync(order, payment);
 
-        }
+            var orderItems = _mapper.Map<List<OrderItemModel>, List<OrderItem>>(cart);
 
-        public async Task<bool> CheckUnpaidOrderExist()
-        {
-            var orders = await GetUserOrders();
-
-            foreach (var order in orders)
+            for (int i = 0; i < orderItems.Count; i++)
             {
-                if (order.Status == Enums.Status.Unpaid)
-                {
-                    return false;
-                }
+                orderItems[i].OrderId = order.Id;
             }
 
-            return true;
+            await _orderRepository.AddItemsToOrder(orderItems);
+
+            return order.Id;
         }
 
-        public async Task<Order> GetLastUnpaidUserOrder()
+        public async Task<OrderModel> GetOrderAsync(int id)
         {
-            var orders = await GetUserOrders();
-
-            foreach (var order in orders)
+            var order = _mapper.Map<Order, OrderModel>(await _orderRepository.GetOrderById(id));
+            if (order is null)
             {
-                if (order.Status == Enums.Status.Unpaid)
-                {
-                    return order;
-                }
+                throw new ServerException("Order not exist", Enums.Errors.NotFound);
             }
 
-            return null;
+            return order;
         }
 
-        public async Task<OrderModel> GetOrderAsync(string id)
+        public async Task<IEnumerable<OrderModel>> GetUserOrdersAsync()
         {
-            throw new System.NotImplementedException();
-        }
+            string userEmail = _contextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var user = await _userRepository.GetUserByEmailAsync(userEmail);
 
-        public async Task<IEnumerable<Order>> GetUserOrders()
-        {
-            var user = await _userRepository.GetUserByEmailAsync(_userEmail);
-
-            return await _orderRepository.GetUserOrdersById(user.Id);
+            return _mapper.Map<IEnumerable<Order>, IEnumerable<OrderModel>>(await _orderRepository.GetUserOrders(user.Id));
         }
 
         public async Task RemoveOrderAsync(string id)
         {
-            
-        }
-
-        public async Task<OrderModel> UpdateOrderAsync(OrderModel model)
-        {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
     }
 }

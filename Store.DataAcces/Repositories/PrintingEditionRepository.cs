@@ -54,6 +54,23 @@ namespace Store.DataAccess.Repositories
                     printingEditions.Where(pe => pe.Price >= filter.MinPrice && pe.Price <= filter.MaxPrice);
             }
 
+            if (filter.Currency != null)
+            {
+                printingEditions = printingEditions.Where(pe => pe.EditionCurrency == filter.Currency);
+            }
+
+            if (filter.Sort != null)
+            {
+                if ((bool) filter.Sort)
+                {
+                    printingEditions = printingEditions.OrderByDescending(pe => pe.Price);
+                }
+                else
+                {
+                    printingEditions = printingEditions.OrderBy(pe => pe.Price);
+                }
+            }
+
             printingEditions = printingEditions.Skip(skip).Take(pageSize);
 
             return await printingEditions.ToListAsync();

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Configuration;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +8,9 @@ using Store.BusinessLogic.Mapping;
 using Store.BusinessLogic.Services;
 using Store.DataAccess;
 using Store.Shared.Common;
+using Stripe;
+using AccountService = Store.BusinessLogic.Services.AccountService;
+using OrderService = Store.BusinessLogic.Services.OrderService;
 
 
 namespace Store.BusinessLogic
@@ -22,7 +26,7 @@ namespace Store.BusinessLogic
             services.AddTransient(typeof(IAuthorService), typeof(AuthorService));
             services.AddTransient(typeof(IPrintingEditionService), typeof(PrintingEditionService));
             services.AddTransient(typeof(IOrderService), typeof(OrderService));
-            services.AddTransient(typeof(ICartService), typeof(CartService));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddSingleton<IUriService>(provider =>
             {
@@ -32,7 +36,6 @@ namespace Store.BusinessLogic
                 return new UriService(absolureUri);
             });
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.DataAccessInitializer(configuration);
 
@@ -43,6 +46,8 @@ namespace Store.BusinessLogic
                 configuration.AddProfile(new PrintingEditionMapping());
                 configuration.AddProfile(new OrderMapping());
             });
+
+            services.Configure<StripeOptions>(configuration.GetSection("Stripe"));
 
             var mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
