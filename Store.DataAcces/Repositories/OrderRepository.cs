@@ -64,6 +64,17 @@ namespace Store.DataAccess.Repositories
             return model;
         }
 
+        public async Task UpdatePaymentTransactionId(int paymentId, string transactionId)
+        {
+            var paymentRep = _context.Payments;
+            var payment = await paymentRep.SingleOrDefaultAsync(p => p.Id == paymentId);
+            payment.TransactionId = transactionId;
+
+            paymentRep.Update(payment);
+            await _context.SaveChangesAsync();
+
+        }
+
         public async Task<Order> UpdateOrder(Order order)
         {
             return await UpdateAsync(order);

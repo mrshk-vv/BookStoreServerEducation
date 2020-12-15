@@ -13,6 +13,7 @@ namespace Store.DataAccess.Repositories.Interfaces
         public Task<IEnumerable<Order>> GetUserOrders(string id);
         public Task<Order> GetOrderById(int id);
         public Task<Order> CreateOrderAsync(Order model, Payment payment);
+        public Task UpdatePaymentTransactionId(int paymentId, string transactionId);
         public Task<Order> UpdateOrder(Order order);
         public Task AddItemsToOrder(List<OrderItem> items);
         public Task RemoveOrderAsync(int id);

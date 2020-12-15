@@ -85,6 +85,8 @@ namespace Store.BusinessLogic.Services
             {
                 paidOrder.Status = Enums.Status.Paid;
                 await _orderRepository.UpdateOrder(paidOrder);
+
+                await _orderRepository.UpdatePaymentTransactionId(paidOrder.PaymentId, charge.Id);
             }
             else
             {
@@ -106,7 +108,7 @@ namespace Store.BusinessLogic.Services
 
             var payment = new Payment()
             {
-                TransactionId = Guid.Empty
+                TransactionId = string.Empty
             };
 
             Order order = new Order
